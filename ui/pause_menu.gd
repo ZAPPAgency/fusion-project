@@ -193,7 +193,8 @@ func _show_card_heroes(enter := false, hero_index := 0) -> void:
 	_content.add_child(UiTheme.label(tr("MENU_CHOOSE_HERO"), UiTheme.GOLD))
 	var buttons: Array[Button] = []
 	for progress in GameState.heroes:
-		var button := UiTheme.button(progress.full_title(), _show_card_slots.bind(progress))
+		var button := _hero_pick_row(progress)
+		button.pressed.connect(_show_card_slots.bind(progress))
 		button.focus_entered.connect(_preview_deck.bind(progress))
 		_content.add_child(button)
 		buttons.append(button)
@@ -204,6 +205,32 @@ func _show_card_heroes(enter := false, hero_index := 0) -> void:
 	if enter:
 		_back = _focus_tabs
 		buttons[hero_index].grab_focus()
+
+
+## Ligne compacte « portrait + nom » pour choisir un héros (page Cartes).
+func _hero_pick_row(progress: HeroProgress) -> Button:
+	var row := Button.new()
+	row.custom_minimum_size = Vector2(450, 40)
+	UiFeedback.attach(row)
+	var line := HBoxContainer.new()
+	line.position = Vector2(8, 0)
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	line.add_theme_constant_override("separation", 8)
+	row.add_child(line)
+	var portrait_box := Control.new()
+	portrait_box.custom_minimum_size = Vector2(44, 40)
+	portrait_box.clip_contents = true  # les ailes ne débordent pas sur le texte
+	line.add_child(portrait_box)
+	var portrait := HeroPortrait.new(progress, 0.8)
+	portrait.position = Vector2(22, 38)
+	portrait_box.add_child(portrait)
+	row.focus_entered.connect(func() -> void: portrait.play_once(&"attack1"))
+	var name_label := UiTheme.label("%s   %s %d" % [progress.full_title(), tr("LEVEL_SHORT"), progress.level],
+		progress.data.placeholder_color.lightened(0.3), 10)
+	name_label.custom_minimum_size = Vector2(380, 40)
+	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	line.add_child(name_label)
+	return row
 
 
 ## Aperçu du deck d'un héros : son résumé et ses 5 emplacements (non sélectionnables).
