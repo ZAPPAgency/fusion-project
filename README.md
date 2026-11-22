@@ -19,6 +19,12 @@
 
 En combat : F1 change la difficulté, F2 calibre la latence.
 
+### À la souris
+
+- **Carte** : clic pour aller à un endroit (le héros contourne les obstacles), bouton maintenu pour suivre le curseur, clic sur un personnage ou un coffre pour y aller et interagir. Boutons « Héros » et « Menu » en haut à droite.
+- **Menus** : survoler sélectionne, clic gauche choisit, clic droit revient en arrière.
+- **Combat** : clic sur une action puis sur un ennemi ; au bon moment, clic gauche pour attaquer ou parer, clic droit pour esquiver.
+
 ## Développement
 
 - Moteur : Godot 4.8 (GDScript).

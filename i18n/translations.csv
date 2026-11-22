@@ -218,3 +218,7 @@ FORGE_CONTINUE,[Espace] Continuer,[Space] Continue
 MENU_MATERIALS,Matériaux,Materials
 TEAM_LEADER,Marche en tête sur la carte,Walks in front on the map
 TEAM_HINT,[Espace] Marcher avec ce héros    Sur la carte : [{key}] change de héros,[Space] Walk with this hero    On the map: [{key}] switches hero
+MOUSE_LEFT,clic gauche,left click
+MOUSE_RIGHT,clic droit,right click
+HUD_MENU,Menu [Tab],Menu [Tab]
+HUD_SWITCH,Héros [R],Hero [R]

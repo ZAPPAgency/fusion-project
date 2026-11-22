@@ -71,6 +71,7 @@ func _add_button(text: String, on_pressed: Callable, enabled := true) -> void:
 	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	button.disabled = not enabled
 	button.pressed.connect(on_pressed)
+	UiFeedback.attach(button)
 	_list.add_child(button)
 
 

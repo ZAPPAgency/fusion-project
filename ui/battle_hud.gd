@@ -87,6 +87,7 @@ func _ready() -> void:
 func setup(heroes: Array[BattleUnit]) -> void:
 	for hero in heroes:
 		var panel := PanelContainer.new()
+		panel.mouse_filter = Control.MOUSE_FILTER_IGNORE  # simple affichage : laisse passer les clics
 		panel.custom_minimum_size = Vector2(144, 62)
 		var box := VBoxContainer.new()
 		box.add_theme_constant_override("separation", 0)
@@ -177,6 +178,7 @@ func _timeline_icon(unit: BattleUnit, is_current: bool) -> PanelContainer:
 		style.border_color = Color(0.9, 0.9, 0.9)
 
 	var icon := PanelContainer.new()
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	icon.add_theme_stylebox_override("panel", style)
 	icon.custom_minimum_size = Vector2(24, 24) if is_current else Vector2(18, 18)
 	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER

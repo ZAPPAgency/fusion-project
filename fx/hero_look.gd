@@ -383,7 +383,11 @@ func _draw_fire_spiral(canvas: CanvasItem, back: bool) -> void:
 			var point := _spiral_point(strand, y, 1.0 + flare * 0.18) + Vector2(0, roundf(shape * 2.0))
 			# Grandes flammes aux pointes déchiquetées : leur hauteur varie d'une colonne à l'autre.
 			var flame_height := maxf(0.0, flare) * 16.0 * (0.4 + flicker)
-			_draw_flame_column(canvas, point.floor(), behind, flicker, fade, 1.0 + shape * 0.7, flame_height)
+			# Épaisseur : des renflements parcourent le ruban comme des pulsations (gros puis fin),
+			# modulés par le bruit pour ne jamais se répéter à l'identique.
+			var pulse := 0.5 + 0.5 * sin(y * 0.32 - _time * 5.0 + strand * 2.0)
+			var swell := (0.35 + 1.4 * pulse) * (1.0 + shape * 0.45)
+			_draw_flame_column(canvas, point.floor(), behind, flicker, fade, swell, flame_height)
 
 
 ## Une colonne de flamme de 2 pixels de large posée sur le ruban.
@@ -392,7 +396,7 @@ func _draw_flame_column(canvas: CanvasItem, base: Vector2, behind: float, flicke
 		swell := 1.0, flare := 0.0) -> void:
 	var alpha := (1.0 - behind * 0.8) * fade
 	var taper := clampf(behind / 0.1, 0.4, 1.0)  # la tête du ruban se termine en pointe
-	var thickness := maxf(1.0, roundf(lerpf(5.0, 2.0, behind) * taper * swell))
+	var thickness := clampf(roundf(lerpf(6.0, 2.5, behind) * taper * swell), 1.0, 10.0)
 	var tongue := roundf(thickness * 0.6 + (flicker * 8.0 + flare) * (1.0 - behind))  # pointe au-dessus du ruban
 	var bottom := base.y + ceilf(thickness * 0.5)
 	var top := base.y - tongue

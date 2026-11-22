@@ -33,13 +33,43 @@ func _ready() -> void:
 
 	if GameState.player_position == null:
 		_show_map_name()
+	_add_hud_buttons(player)
+
+
+## Boutons cliquables en haut à droite : menu et changement de héros (pour jouer à la souris).
+## Ils ne prennent jamais le focus : Espace sert toujours à parler aux PNJ.
+func _add_hud_buttons(player: Player) -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 5
+	add_child(layer)
+	var bar := HBoxContainer.new()
+	bar.theme = UiTheme.get_theme()
+	bar.alignment = BoxContainer.ALIGNMENT_END
+	bar.position = Vector2(0, 4)
+	bar.size = Vector2(634, 18)
+	layer.add_child(bar)
+	for entry in [["HUD_SWITCH", player.switch_leader], ["HUD_MENU", _open_menu]]:
+		var button := UiTheme.button(tr(entry[0]), entry[1])
+		button.focus_mode = Control.FOCUS_NONE
+		var background := StyleBoxFlat.new()
+		background.bg_color = Color(0.05, 0.05, 0.09, 0.7)
+		background.set_content_margin_all(3)
+		background.content_margin_left = 6
+		background.content_margin_right = 6
+		button.add_theme_stylebox_override("normal", background)
+		bar.add_child(button)
+
+
+func _open_menu() -> void:
+	if not Dialogue.is_open() and not SceneRouter.is_busy() and not get_tree().paused:
+		add_child(PauseMenu.new())
 
 
 ## Tab / Start : menu de pause.
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("menu") and not Dialogue.is_open() and not SceneRouter.is_busy() and not get_tree().paused:
 		get_viewport().set_input_as_handled()
-		add_child(PauseMenu.new())
+		_open_menu()
 
 
 func _start_position() -> Vector2:

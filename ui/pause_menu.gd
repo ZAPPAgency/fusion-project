@@ -65,6 +65,13 @@ func _ready() -> void:
 	right.add_child(_content)
 
 	_focus_tabs()
+	get_viewport().gui_focus_changed.connect(_on_focus_changed)
+
+
+## Souris : survoler la page de droite y fait entrer (Échap / clic droit ramène aux onglets).
+func _on_focus_changed(control: Control) -> void:
+	if _content.is_ancestor_of(control) and _back == close:
+		_back = _focus_tabs
 
 
 func close() -> void:

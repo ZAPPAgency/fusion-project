@@ -116,7 +116,7 @@ func start(mode: Mode, skill: SkillData, view: UnitView, on_hit: Callable,
 	set_process(true)
 
 
-## Appui du joueur (appelé par _unhandled_input, ou directement par les tests).
+## Appui du joueur (appelé par _input, ou directement par les tests).
 func press(action: StringName) -> void:
 	if not _running or _current >= _impacts_ms.size():
 		return
@@ -138,7 +138,9 @@ func press(action: StringName) -> void:
 		_resolve(index, result)
 
 
-func _unhandled_input(event: InputEvent) -> void:
+## _input (et pas _unhandled_input) : un clic de souris compte même s'il tombe
+## sur un panneau de l'interface.
+func _input(event: InputEvent) -> void:
 	if not _running:
 		return
 	var action := &""

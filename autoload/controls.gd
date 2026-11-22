@@ -31,6 +31,17 @@ const PAD_BUTTONS := {
 	"switch_leader": [JOY_BUTTON_Y],
 }
 
+## Souris : clic gauche pour valider, attaquer au bon moment et parer ;
+## clic droit pour esquiver et revenir en arrière dans les menus.
+## (Sur la carte, le clic gauche sert aussi à se déplacer : voir Player.)
+const MOUSE_BUTTONS := {
+	"confirm": [MOUSE_BUTTON_LEFT],
+	"parry": [MOUSE_BUTTON_LEFT],
+	"dodge": [MOUSE_BUTTON_RIGHT],
+	"ui_cancel": [MOUSE_BUTTON_RIGHT],
+}
+const MOUSE_NAMES := {MOUSE_BUTTON_LEFT: "MOUSE_LEFT", MOUSE_BUTTON_RIGHT: "MOUSE_RIGHT"}
+
 ## Stick gauche : [axe, direction].
 const PAD_STICK := {
 	"move_up": [JOY_AXIS_LEFT_Y, -1.0],
@@ -74,6 +85,13 @@ func _ready() -> void:
 		event.axis_value = PAD_STICK[action][1]
 		InputMap.action_add_event(action, event)
 
+	for action in MOUSE_BUTTONS:
+		_ensure_action(action)
+		for button in MOUSE_BUTTONS[action]:
+			var event := InputEventMouseButton.new()
+			event.button_index = button
+			InputMap.action_add_event(action, event)
+
 	# Sur Mac, le raccourci habituel du plein écran est Ctrl + Cmd + F.
 	var mac_fullscreen := InputEventKey.new()
 	mac_fullscreen.physical_keycode = KEY_F
@@ -88,8 +106,13 @@ func prompt(action: String) -> String:
 	if DisplayServer.get_name() != "headless":  # sans fenêtre, la disposition du clavier est inconnue
 		keycode = DisplayServer.keyboard_get_keycode_from_physical(keycode)
 	var key_name := OS.get_keycode_string(keycode)
-	var pad_name: String = PAD_NAMES.get(PAD_BUTTONS[action][0], "")
-	return "%s / %s" % [key_name, pad_name] if pad_name else key_name
+	var names: Array[String] = [key_name]
+	var pad_name: String = PAD_NAMES.get(PAD_BUTTONS.get(action, [-1])[0], "")
+	if pad_name:
+		names.append(pad_name)
+	if MOUSE_BUTTONS.has(action) and action != "confirm":  # « clic gauche » pour valider va de soi
+		names.append(tr(MOUSE_NAMES[MOUSE_BUTTONS[action][0]]))
+	return " / ".join(names)
 
 
 func _ensure_action(action: String) -> void:

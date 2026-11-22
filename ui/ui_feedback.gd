@@ -1,6 +1,6 @@
 class_name UiFeedback
 extends RefCounted
-## Petites animations de retour dans les menus :
+## Petites animations de retour dans les menus (et sélection à la souris) :
 ## - sélection (flèches) : l'élément fait un petit saut et un « tic » discret ;
 ## - choix (Espace) : l'élément tremble et s'écrase légèrement.
 ## On n'anime que l'échelle, la rotation et (pour les cartes) la position dans leur bouton :
@@ -14,6 +14,11 @@ static func attach(control: Control, visual: Control = null, centered := false) 
 	control.focus_entered.connect(pop.bind(target))
 	if control is BaseButton:
 		control.pressed.connect(shake.bind(target))
+	# Souris : survoler un élément le sélectionne, comme les flèches.
+	control.mouse_entered.connect(func() -> void:
+		var disabled: bool = control is BaseButton and control.disabled
+		if control.focus_mode != Control.FOCUS_NONE and not disabled and not control.has_focus():
+			control.grab_focus())
 
 
 ## Petit saut : grossit un instant puis revient avec un rebond.

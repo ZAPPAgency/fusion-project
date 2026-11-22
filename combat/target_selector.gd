@@ -2,6 +2,7 @@ class_name TargetSelector
 extends Node2D
 ## Curseur pour choisir une cible : gauche/droite (ou haut/bas) pour changer,
 ## Espace pour valider, Échap pour revenir au menu.
+## Souris : survoler un combattant le vise, clic gauche pour valider, clic droit pour annuler.
 
 signal finished(target: BattleUnit)  # null si le joueur annule
 
@@ -39,6 +40,19 @@ func _draw() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not visible:
 		return
+	if event is InputEventMouseMotion:
+		var hovered := _view_under_mouse()
+		if hovered != -1 and hovered != _index:
+			_index = hovered
+			_place()
+			AudioManager.play_tick()
+		return
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		var clicked := _view_under_mouse()
+		if clicked != -1:
+			get_viewport().set_input_as_handled()
+			_finish(_views[clicked].unit)
+		return
 	if event.is_action_pressed("ui_right") or event.is_action_pressed("ui_down"):
 		_cycle(1)
 	elif event.is_action_pressed("ui_left") or event.is_action_pressed("ui_up"):
@@ -50,6 +64,18 @@ func _unhandled_input(event: InputEvent) -> void:
 	else:
 		return
 	get_viewport().set_input_as_handled()
+
+
+## Indice du combattant sous la souris (-1 s'il n'y en a pas).
+func _view_under_mouse() -> int:
+	var mouse := get_global_mouse_position()
+	for i in _views.size():
+		var view := _views[i]
+		var box := Rect2(view.home_position + Vector2(-view.body_size.x / 2 - 6, -view.body_size.y - 6),
+			view.body_size + Vector2(12, 12))
+		if box.has_point(mouse):
+			return i
+	return -1
 
 
 func _cycle(step: int) -> void:
