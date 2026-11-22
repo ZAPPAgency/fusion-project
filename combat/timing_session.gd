@@ -21,6 +21,8 @@ const RECOVER_MS := 300.0  ## Retour au repos après le dernier coup
 
 ## Pour les tests : si >= 0, remplace l'horloge réelle.
 var fake_now_ms := -1.0
+## Élargit les fenêtres de timing de la prochaine séquence (cartes du héros concerné).
+var window_bonus_ms := 0.0
 
 var _mode := Mode.ATTACK
 var _judge: TimingJudge
@@ -64,7 +66,7 @@ func start(mode: Mode, skill: SkillData, view: UnitView, on_hit: Callable,
 	_view = view
 	_on_hit = on_hit
 	_on_release = on_release
-	_judge = TimingJudge.new(Settings.current_windows(), Settings.latency_offset_ms)
+	_judge = TimingJudge.new(TimingJudge.widened(Settings.current_windows(), window_bonus_ms), Settings.latency_offset_ms)
 	_impacts_ms.clear()
 	_results.clear()
 	_early_results.clear()

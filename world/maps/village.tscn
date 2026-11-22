@@ -330,7 +330,7 @@ position = Vector2(944, 380)
 script = ExtResource("4_f1eg2")
 speaker = "NPC_MERCHANT"
 lines = Array[String](["DLG_MERCHANT_1"])
-shop_stock = PackedStringArray("potion", "grande_potion", "ether", "epee_acier", "baton_braise", "arc_if", "cotte_mailles", "cape_voyage", "amulette_celerite")
+shop_stock = PackedStringArray("potion", "grande_potion", "ether", "epee_acier", "baton_braise", "arc_if", "cotte_mailles", "cape_voyage", "seve_vitale", "amulette_celerite", "garde_fer")
 robe_color = Color(0.18431373, 0.43529412, 0.41568628, 1)
 hair_color = Color(0.627451, 0.3137255, 0.16470589, 1)
 

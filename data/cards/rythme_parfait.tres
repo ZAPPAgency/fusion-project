@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" path="res://data/card_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"rythme_parfait"
+display_name = "CARD_RYTHME_PARFAIT"
+rarity = 2
+passive = 2
+passive_value = 1.0
+timing_bonus_ms = 10.0
+timing_bonus_per_rank = 3.0

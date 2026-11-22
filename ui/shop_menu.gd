@@ -1,16 +1,17 @@
 class_name ShopMenu
 extends CanvasLayer
-## Boutique : liste des articles avec leur prix ; Espace pour acheter, Échap pour partir.
+## Boutique : liste des articles (objets et cartes) avec leur prix ; Espace pour acheter, Échap pour partir.
 ## Utilisation : var shop := ShopMenu.new(); shop.stock = [...]; add_child(shop); await shop.closed
 
 signal closed
 
-var stock: PackedStringArray = []  ## Identifiants des objets / équipements en vente
+var stock: PackedStringArray = []  ## Identifiants des objets / cartes en vente
 var shop_name := ""  ## Clé de traduction du titre
 
 var _list: VBoxContainer
 var _gold: Label
 var _details: Label
+var _preview: Control  ## Aperçu de la carte sélectionnée
 
 
 func _ready() -> void:
@@ -44,14 +45,27 @@ func _ready() -> void:
 	_gold = UiTheme.label("", UiTheme.GOLD)
 	header.add_child(_gold)
 
+	# Liste défilante : la boutique a plus d'articles que la hauteur du panneau.
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(400, 150)
+	scroll.follow_focus = true
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	box.add_child(scroll)
 	_list = VBoxContainer.new()
 	_list.add_theme_constant_override("separation", 0)
-	_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	box.add_child(_list)
+	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(_list)
+	var bottom := HBoxContainer.new()
+	bottom.add_theme_constant_override("separation", 8)
+	box.add_child(bottom)
+	_preview = Control.new()
+	_preview.custom_minimum_size = CardView.SIZE
+	bottom.add_child(_preview)
 	_details = UiTheme.label("", UiTheme.DIM)
 	_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_details.custom_minimum_size = Vector2(400, 28)
-	box.add_child(_details)
+	_details.custom_minimum_size = Vector2(320, 28)
+	_details.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bottom.add_child(_details)
 	box.add_child(UiTheme.label(tr("SHOP_HINT"), UiTheme.DIM))
 
 	_fill()
@@ -69,15 +83,18 @@ func _fill() -> void:
 		_list.add_child(button)
 
 
-## Détail de l'article sélectionné : effet et quantité déjà possédée.
+## Détail de l'article sélectionné : effet, quantité déjà possédée, aperçu des cartes.
 func _describe(loot: Resource) -> void:
 	var owned := 0
 	var effect := ""
-	if loot is EquipmentData:
-		owned = GameState.equipment_bag.get(loot.id, 0)
-		effect = loot.bonus_text()
+	UiTheme.clear(_preview)
+	if loot is CardData:
+		owned = GameState.cards.filter(func(card: CardInstance) -> bool: return card.data == loot).size()
+		var sample := CardInstance.new(loot, 0)
+		effect = "   ".join(sample.effect_lines())
 		if loot.for_hero != &"":
-			effect += "   (%s)" % tr(GameState.progress_of(load("res://data/characters/%s.tres" % loot.for_hero)).data.display_name)
+			effect += "\n" + tr("CARD_FOR_HERO").format({"hero": tr("HERO_" + String(loot.for_hero).to_upper())})
+		_preview.add_child(CardView.new(sample))
 	else:
 		owned = GameState.inventory.get(loot.id, 0)
 		if loot.heal_amount > 0:

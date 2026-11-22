@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" path="res://data/card_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/characters/aldric.tres" id="2"]
+[ext_resource type="Resource" path="res://data/skills/tourbillon_acier.tres" id="3"]
+
+[resource]
+script = ExtResource("1")
+id = &"tourbillon_acier"
+display_name = "CARD_TOURBILLON_ACIER"
+rarity = 1
+for_hero = &"aldric"
+art_source = ExtResource("2")
+attack = 1
+attack_per_rank = 0.5
+skill = ExtResource("3")

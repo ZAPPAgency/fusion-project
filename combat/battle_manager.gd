@@ -22,6 +22,7 @@ const ATTACK_MULTIPLIERS := {
 	TimingJudge.Result.MISS: 1.0,
 	TimingJudge.Result.HIT: 1.0,
 }
+## Valeurs de base ; les effets passifs des cartes s'y ajoutent (voir CardData.Passive).
 const PARRY_AP_GAIN := 1  ## PA gagnés par parade réussie
 const PERFECT_COMBO_AP_GAIN := 1  ## PA bonus si tous les coups d'une attaque sont parfaits
 const COUNTER_MULTIPLIER := 1.5  ## Puissance de la contre-attaque (sur l'attaque de base)
@@ -66,7 +67,7 @@ func _spawn(datas: Array[CombatantData], slots: Array, into: Array[BattleUnit]) 
 		var data := datas[i]
 		var unit := BattleUnit.new(data)
 		if not data.is_enemy:
-			unit.apply_progress(GameState.progress_of(data))  # niveau, équipement, PV conservés
+			unit.apply_progress(GameState.progress_of(data))  # niveau, cartes, PV conservés
 		if total_by_id[data.id] > 1:
 			seen_by_id[data.id] = seen_by_id.get(data.id, 0) + 1
 			unit.add_suffix(char(64 + seen_by_id[data.id]))  # 65 = "A"
@@ -211,6 +212,7 @@ func _perform_attack(user: BattleUnit, skill: SkillData, targets: Array[BattleUn
 		for target in targets:
 			if target.is_alive():
 				_fx.projectile(skill.projectile, view.weapon_position(), _views[target].center(), skill.projectile_travel)
+	_timing.window_bonus_ms = _window_bonus(user, targets)
 	var results: Array[int] = await _timing.run(mode, skill, view, on_hit, auto_rng, on_release)
 	_hud.show_hint("")
 
@@ -219,8 +221,20 @@ func _perform_attack(user: BattleUnit, skill: SkillData, targets: Array[BattleUn
 	if user.is_enemy:
 		await _counter_if_all_parried(user, targets, results)
 	elif results.all(func(result: int) -> bool: return result == TimingJudge.Result.PERFECT):
-		user.gain_ap(PERFECT_COMBO_AP_GAIN)
-		view.show_text("+%d %s" % [PERFECT_COMBO_AP_GAIN, tr("AP_SHORT")], GOLD)
+		var gain := PERFECT_COMBO_AP_GAIN + user.passive_ap(CardData.Passive.PERFECT_AP)
+		user.gain_ap(gain)
+		view.show_text("+%d %s" % [gain, tr("AP_SHORT")], GOLD)
+
+
+## Aide au timing des cartes : celle de l'attaquant (héros), ou en défense
+## la plus petite parmi les héros visés (un seul appui vaut pour tous).
+func _window_bonus(user: BattleUnit, targets: Array[BattleUnit]) -> float:
+	if not user.is_enemy:
+		return user.timing_bonus_ms
+	var bonus := INF
+	for target in targets:
+		bonus = minf(bonus, target.timing_bonus_ms)
+	return 0.0 if bonus == INF else bonus
 
 
 ## Applique un coup d'une séquence à toutes les cibles encore en vie.
@@ -231,7 +245,7 @@ func _resolve_hit(user: BattleUnit, skill: SkillData, targets: Array[BattleUnit]
 		var target_view: UnitView = _views[target]
 		match result:
 			TimingJudge.Result.PARRY:
-				target.gain_ap(PARRY_AP_GAIN)
+				target.gain_ap(PARRY_AP_GAIN + target.passive_ap(CardData.Passive.PARRY_AP))
 				target_view.play_parry()
 				target_view.show_text(tr("QTE_PARRY"), GOLD)
 				_fx.parry(target_view.center(), _views[user].center())
@@ -245,7 +259,10 @@ func _resolve_hit(user: BattleUnit, skill: SkillData, targets: Array[BattleUnit]
 				if target.is_enemy == false:
 					_fx.hero_hurt()
 				# Les dégâts de la compétence sont répartis entre les coups du combo.
-				var multiplier: float = ATTACK_MULTIPLIERS[result] / skill.impact_times.size()
+				var multiplier: float = ATTACK_MULTIPLIERS[result]
+				if result == TimingJudge.Result.PERFECT:
+					multiplier += user.passive(CardData.Passive.PERFECT_POWER)
+				multiplier /= skill.impact_times.size()
 				var amount := DamageCalculator.damage(user, target, skill, multiplier)
 				target.take_damage(amount)
 				target_view.show_hit(amount, FxLibrary.tint(skill.impact_fx))
@@ -270,7 +287,8 @@ func _counter_if_all_parried(enemy: BattleUnit, heroes: Array[BattleUnit], resul
 		hero_view.show_text(tr("QTE_COUNTER"), GOLD, 14)
 		_camera.focus(enemy_view.center(), 1.18, 0.2)
 		await hero_view.play_melee(enemy_view, func() -> void:
-			var amount := DamageCalculator.damage(hero, enemy, hero.data.basic_attack, COUNTER_MULTIPLIER)
+			var power := COUNTER_MULTIPLIER + hero.passive(CardData.Passive.COUNTER_POWER)
+			var amount := DamageCalculator.damage(hero, enemy, hero.data.basic_attack, power)
 			enemy.take_damage(amount)
 			enemy_view.show_hit(amount)
 			_fx.impact(enemy_view.center(), hero.data.basic_attack.impact_fx, 1.6)

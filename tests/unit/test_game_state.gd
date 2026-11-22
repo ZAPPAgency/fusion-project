@@ -1,5 +1,5 @@
 extends GutTest
-## État de la partie : PV, objets, achats, équipement, récompenses, sauvegarde.
+## État de la partie : PV, objets, achats, cartes, récompenses, sauvegarde.
 
 const TEST_SAVE := "user://test_save.json"
 
@@ -36,10 +36,19 @@ func test_add_and_remove_items() -> void:
 	assert_eq(GameState.inventory[&"potion"], 4)
 
 
-func test_loot_goes_to_the_right_bag() -> void:
+func _count_cards(card_id: StringName) -> int:
+	return GameState.cards.filter(func(card: CardInstance) -> bool: return card.data.id == card_id).size()
+
+
+func test_new_game_equips_starter_cards() -> void:
+	for progress in GameState.heroes:
+		assert_eq(progress.slots[0].data.id, GameState.STARTER_CARDS[progress.data.id])
+
+
+func test_loot_goes_to_cards_or_items() -> void:
 	GameState.add_loot(&"anneau_vie")
 	GameState.add_loot(&"grande_potion")
-	assert_eq(GameState.equipment_bag[&"anneau_vie"], 1)
+	assert_eq(_count_cards(&"anneau_vie"), 1)
 	assert_eq(GameState.inventory[&"grande_potion"], 1)
 
 
@@ -51,14 +60,14 @@ func test_buy_needs_enough_gold() -> void:
 	assert_eq(GameState.gold, 5)
 
 
-func test_equip_swaps_with_the_bag() -> void:
-	var sword := GameState.equipment_data(&"epee_acier")
-	GameState.add_loot(&"epee_acier")
-	GameState.equip(_aldric(), EquipmentData.Slot.WEAPON, sword)
-	assert_false(GameState.equipment_bag.has(&"epee_acier"))
-	assert_eq(_aldric().equipped(EquipmentData.Slot.WEAPON), sword)
-	GameState.equip(_aldric(), EquipmentData.Slot.WEAPON, null)
-	assert_eq(GameState.equipment_bag[&"epee_acier"], 1)
+func test_equipping_a_worn_card_moves_it() -> void:
+	var ring := GameState.add_card(&"anneau_vie")
+	var ysolde := GameState.heroes[1]
+	GameState.equip_card(_aldric(), 1, ring)
+	assert_eq(GameState.owner_of(ring), _aldric())
+	GameState.equip_card(ysolde, 1, ring)
+	assert_null(_aldric().slots[1])
+	assert_eq(GameState.owner_of(ring), ysolde)
 
 
 func test_victory_gives_xp_gold_and_revives_knocked_out_heroes() -> void:
@@ -76,7 +85,8 @@ func test_victory_gives_xp_gold_and_revives_knocked_out_heroes() -> void:
 func test_save_and_load_round_trip() -> void:
 	SaveSystem.save_path = TEST_SAVE
 	GameState.gold = 123
-	GameState.add_loot(&"cotte_mailles")
+	var mail := GameState.add_card(&"cotte_mailles", 3)
+	GameState.equip_card(_aldric(), 1, mail)
 	GameState.opened_chests["village_chest_0"] = true
 	GameState.defeated_encounters["forest_1"] = true
 	_aldric().add_xp(200)
@@ -86,7 +96,9 @@ func test_save_and_load_round_trip() -> void:
 	GameState.new_game()
 	assert_true(SaveSystem.load_game())
 	assert_eq(GameState.gold, 123)
-	assert_eq(GameState.equipment_bag[&"cotte_mailles"], 1)
+	assert_eq(_count_cards(&"cotte_mailles"), 1)
+	assert_eq(_aldric().slots[1].data.id, &"cotte_mailles")
+	assert_eq(_aldric().slots[1].rank, 3)
 	assert_true(GameState.opened_chests.has("village_chest_0"))
 	assert_true(GameState.defeated_encounters.has("forest_1"))
 	assert_eq(_aldric().level, level)
@@ -99,3 +111,15 @@ func test_arriving_on_a_map_forgets_the_old_position() -> void:
 	assert_eq(GameState.current_map, "res://world/maps/forest.tscn")
 	assert_eq(GameState.spawn_name, "from_village")
 	assert_null(GameState.player_position)
+
+
+func test_old_save_equipment_becomes_cards() -> void:
+	var old_save := {
+		"heroes": {"aldric": {"level": 2, "xp": 0, "hp": 50, "equipment": {"0": "epee_acier"}}},
+		"gold": 10,
+		"equipment_bag": {"cape_voyage": 2},
+	}
+	GameState.load_dict(old_save)
+	assert_eq(_count_cards(&"cape_voyage"), 2)
+	assert_eq(_aldric().slots[0].data.id, &"seve_vitale", "la carte de départ reste")
+	assert_eq(_aldric().slots[1].data.id, &"epee_acier", "l'arme portée devient une carte équipée")

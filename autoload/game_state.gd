@@ -1,5 +1,5 @@
 extends Node
-## État de la partie en cours : équipe (niveaux, PV, équipement), or, objets,
+## État de la partie en cours : équipe (niveaux, PV, cartes), or, objets, collection de cartes,
 ## carte actuelle, ennemis vaincus, coffres ouverts, combat en cours.
 
 const PARTY_PATHS := [
@@ -11,6 +11,8 @@ const PARTY_PATHS := [
 const START_MAP := "res://world/maps/village.tscn"
 const START_SPAWN := "start"
 const START_GOLD := 30
+## Carte de départ de chaque héros, déjà équipée.
+const STARTER_CARDS := {&"aldric": &"seve_vitale", &"ysolde": &"croc_squelette", &"fenn": &"plume_vent"}
 
 ## Combat lancé directement depuis la scène de combat (tests, sans carte).
 const TEST_ENCOUNTER_PATHS := [
@@ -22,11 +24,15 @@ const TEST_ENCOUNTER_PATHS := [
 ## Temps (s) pendant lequel les ennemis de la carte ignorent le joueur après un combat.
 const ENCOUNTER_GRACE := 2.0
 
+## Version du format de sauvegarde (2 = cartes à la place de l'équipement).
+const SAVE_VERSION := 2
+
 var party: Array[CombatantData] = []  ## Fiches de base des héros (dans l'ordre de l'équipe)
 var heroes: Array[HeroProgress] = []  ## Progression de chaque héros (même ordre)
 var gold := 0
 var inventory := {}  # id d'objet consommable (StringName) -> quantité
-var equipment_bag := {}  # id d'équipement non porté (StringName) -> quantité
+var cards: Array[CardInstance] = []  ## Toutes les cartes du joueur, équipées ou non
+var next_card_uid := 1
 
 # --- Exploration ---
 var current_map := ""
@@ -56,7 +62,11 @@ func new_game() -> void:
 		heroes.append(HeroProgress.new(data))
 	gold = START_GOLD
 	inventory = {&"potion": 3, &"ether": 1}
-	equipment_bag = {}
+	cards.clear()
+	next_card_uid = 1
+	for progress in heroes:
+		progress.equip(0, add_card(STARTER_CARDS[progress.data.id]))
+	heal_party()  # les PV max comptent maintenant les cartes de départ
 	current_map = START_MAP
 	spawn_name = START_SPAWN
 	autoplay_step = 0
@@ -146,20 +156,16 @@ func leave_battle(victory: bool) -> void:
 	SceneRouter.transition_to(current_map)
 
 
-# --- Objets et équipement ---
+# --- Objets ---
 
 func item_data(item_id: StringName) -> ItemData:
 	return load("res://data/items/%s.tres" % item_id)
 
 
-func equipment_data(equipment_id: StringName) -> EquipmentData:
-	return load("res://data/equipment/%s.tres" % equipment_id)
-
-
-## Objet consommable ou équipement, selon l'identifiant.
+## Objet consommable ou carte, selon l'identifiant.
 func loot_data(loot_id: StringName) -> Resource:
-	if ResourceLoader.exists("res://data/equipment/%s.tres" % loot_id):
-		return equipment_data(loot_id)
+	if ResourceLoader.exists("res://data/cards/%s.tres" % loot_id):
+		return card_data(loot_id)
 	return item_data(loot_id)
 
 
@@ -170,10 +176,11 @@ func has_items() -> bool:
 	return false
 
 
-## Ajoute un objet ou un équipement (coffres, achats).
+## Ajoute un objet ou une carte (coffres, achats).
 func add_loot(loot_id: StringName, amount := 1) -> void:
-	if loot_data(loot_id) is EquipmentData:
-		equipment_bag[loot_id] = equipment_bag.get(loot_id, 0) + amount
+	if loot_data(loot_id) is CardData:
+		for i in amount:
+			add_card(loot_id)
 	else:
 		add_item(loot_id, amount)
 
@@ -196,15 +203,36 @@ func buy(loot_id: StringName) -> bool:
 	return true
 
 
-## Équipe un objet du sac sur un héros ; l'ancien retourne dans le sac. `item` null = retirer.
-func equip(progress: HeroProgress, slot: EquipmentData.Slot, item: EquipmentData) -> void:
-	if item:
-		equipment_bag[item.id] = equipment_bag.get(item.id, 0) - 1
-		if equipment_bag[item.id] <= 0:
-			equipment_bag.erase(item.id)
-	var previous := progress.equip(slot, item)
-	if previous:
-		equipment_bag[previous.id] = equipment_bag.get(previous.id, 0) + 1
+# --- Cartes ---
+
+func card_data(card_id: StringName) -> CardData:
+	return load("res://data/cards/%s.tres" % card_id)
+
+
+## Ajoute un nouvel exemplaire de carte à la collection et le renvoie.
+func add_card(card_id: StringName, rank := 1) -> CardInstance:
+	var card := CardInstance.new(card_data(card_id), next_card_uid, rank)
+	next_card_uid += 1
+	cards.append(card)
+	return card
+
+
+## Héros qui porte cette carte (null = carte libre).
+func owner_of(card: CardInstance) -> HeroProgress:
+	for progress in heroes:
+		if progress.slot_of(card) != -1:
+			return progress
+	return null
+
+
+## Équipe une carte sur un héros (null = vider l'emplacement). Si la carte était portée
+## ailleurs (autre héros ou autre emplacement), elle y est retirée d'abord.
+func equip_card(progress: HeroProgress, slot: int, card: CardInstance) -> void:
+	if card:
+		var holder := owner_of(card)
+		if holder:
+			holder.equip(holder.slot_of(card), null)
+	progress.equip(slot, card)
 
 
 # --- Sauvegarde ---
@@ -214,10 +242,12 @@ func to_dict() -> Dictionary:
 	for progress in heroes:
 		heroes_saved[String(progress.data.id)] = progress.to_dict()
 	return {
+		"version": SAVE_VERSION,
 		"heroes": heroes_saved,
 		"gold": gold,
 		"inventory": _string_keys(inventory),
-		"equipment_bag": _string_keys(equipment_bag),
+		"cards": cards.map(func(card: CardInstance) -> Dictionary: return card.to_dict()),
+		"next_card_uid": next_card_uid,
 		"map": current_map,
 		"position": [player_position.x, player_position.y] if player_position != null else null,
 		"defeated": defeated_encounters.keys(),
@@ -227,13 +257,22 @@ func to_dict() -> Dictionary:
 
 func load_dict(saved: Dictionary) -> void:
 	new_game()
+	var cards_by_uid := {}
+	if saved.has("cards"):
+		cards.clear()
+		for card_saved: Dictionary in saved.cards:
+			var card := CardInstance.from_dict(card_saved)
+			cards.append(card)
+			cards_by_uid[card.uid] = card
+		next_card_uid = int(saved.get("next_card_uid", cards.size() + 1))
 	var heroes_saved: Dictionary = saved.get("heroes", {})
 	for progress in heroes:
 		if heroes_saved.has(String(progress.data.id)):
-			progress.load_dict(heroes_saved[String(progress.data.id)])
+			progress.load_dict(heroes_saved[String(progress.data.id)], cards_by_uid)
+	if not saved.has("cards"):
+		_convert_old_equipment(saved)
 	gold = int(saved.get("gold", START_GOLD))
 	inventory = _name_keys(saved.get("inventory", {}))
-	equipment_bag = _name_keys(saved.get("equipment_bag", {}))
 	current_map = saved.get("map", START_MAP)
 	var position = saved.get("position")
 	player_position = Vector2(position[0], position[1]) if position != null else null
@@ -241,6 +280,23 @@ func load_dict(saved: Dictionary) -> void:
 		defeated_encounters[id] = true
 	for id in saved.get("chests", []):
 		opened_chests[id] = true
+
+
+## Sauvegarde d'avant les cartes (version 1) : chaque équipement devient la carte
+## du même nom ; ceux qui étaient portés sont équipés sur le même héros.
+func _convert_old_equipment(saved: Dictionary) -> void:
+	var bag: Dictionary = saved.get("equipment_bag", {})
+	for equipment_id in bag:
+		add_loot(StringName(equipment_id), int(bag[equipment_id]))
+	var heroes_saved: Dictionary = saved.get("heroes", {})
+	for progress in heroes:
+		var worn: Dictionary = heroes_saved.get(String(progress.data.id), {}).get("equipment", {})
+		for equipment_id in worn.values():
+			var card := add_card(StringName(equipment_id))
+			for slot in progress.card_slots():
+				if progress.slots[slot] == null and progress.can_equip(slot, card):
+					progress.equip(slot, card)
+					break
 
 
 func _string_keys(counts: Dictionary) -> Dictionary:

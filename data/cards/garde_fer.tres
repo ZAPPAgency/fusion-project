@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" path="res://data/card_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/cards/rempart_ancien.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"garde_fer"
+display_name = "CARD_GARDE_FER"
+rarity = 1
+price = 90
+defense = 2
+defense_per_rank = 0.5
+passive = 1
+passive_value = 1.0
+evolves_into = ExtResource("2")

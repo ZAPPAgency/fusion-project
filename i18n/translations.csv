@@ -90,26 +90,60 @@ REWARD_LEVEL_UP,{hero} passe au niveau {level} !,{hero} reached level {level}!
 REWARD_NEW_SKILL,{hero} apprend {skill} !,{hero} learned {skill}!
 MENU_TITLE,Menu,Menu
 MENU_TEAM,Équipe,Party
-MENU_EQUIPMENT,Équipement,Equipment
 MENU_CLOSE,Fermer,Close
+MENU_CARDS,Cartes,Cards
+MENU_COLLECTION,Collection,Collection
+MENU_NOTHING_TO_EQUIP,Aucune carte libre pour cet emplacement. Lise en vend au village.,No free card for this slot. Lise sells some in the village.
+MENU_COLLECTION_EMPTY,Aucune carte.,No cards.
+CARD_SLOT_EMPTY,Vide,Empty
+CARD_SLOT_LOCKED,Niv {level},Lv {level}
+CARD_EQUIPPED_BY,Équipée : {hero},Equipped: {hero}
+CARD_FOR_HERO,Réservée à {hero},Only for {hero}
+CARD_RANK,Rang {rank},Rank {rank}
+CARD_SKILL,Compétence : {skill},Skill: {skill}
+CARD_TIMING,Timing +{ms} ms,Timing +{ms} ms
+CARD_HINT,[Espace] Choisir    [Échap] Retour,[Space] Select    [Esc] Back
+PASSIVE_PARRY_AP,+{value} PA par parade,+{value} AP per parry
+PASSIVE_PERFECT_AP,+{value} PA sur combo parfait,+{value} AP on perfect combo
+PASSIVE_COUNTER_POWER,Contre-attaque +{value} %,Counterattack +{value}%
+PASSIVE_PERFECT_POWER,Coup parfait +{value} %,Perfect hit +{value}%
+PASSIVE_START_AP,+{value} PA en début de combat,+{value} AP at battle start
+RARITY_COMMON,Commune,Common
+RARITY_RARE,Rare,Rare
+RARITY_EPIC,Épique,Epic
+RARITY_LEGENDARY,Légendaire,Legendary
+CARD_SEVE_VITALE,Sève vitale,Vital Sap
+CARD_CROC_SQUELETTE,Croc de squelette,Skeleton Fang
+CARD_PLUME_VENT,Plume de vent,Wind Feather
+CARD_COTTE_MAILLES,Cotte de mailles,Chainmail
+CARD_CAPE_VOYAGE,Cape de voyage,Travel Cloak
+CARD_ANNEAU_VIE,Anneau de vie,Ring of Life
+CARD_AMULETTE_CELERITE,Amulette de célérité,Swiftness Amulet
+CARD_EPEE_ACIER,Épée d'acier,Steel Sword
+CARD_BATON_BRAISE,Bâton de braise,Ember Staff
+CARD_ARC_IF,Arc en if,Yew Bow
+CARD_OEIL_VIGILANT,Œil vigilant,Watchful Eye
+CARD_GARDE_FER,Garde de fer,Iron Guard
+CARD_LAME_REFLECHIE,Lame réfléchie,Mirrored Blade
+CARD_ECHO_CLOCHE,Écho de la cloche,Echo of the Bell
+CARD_RYTHME_PARFAIT,Rythme parfait,Perfect Rhythm
+CARD_TOURBILLON_ACIER,Tourbillon d'acier,Steel Whirlwind
+CARD_BRAISE_APAISANTE,Braise apaisante,Soothing Ember
+CARD_TIR_RAFALE,Tir en rafale,Rapid Volley
+CARD_LAME_AUBE,Lame de l'aube,Dawn Blade
+CARD_SCEPTRE_CENDRES,Sceptre des cendres,Ash Scepter
+CARD_ARC_TEMPETE,Arc de tempête,Storm Bow
+CARD_REMPART_ANCIEN,Rempart ancien,Ancient Rampart
+SKILL_TOURBILLON_ACIER,Tourbillon d'acier,Steel Whirlwind
+SKILL_BRAISE_APAISANTE,Braise apaisante,Soothing Ember
+SKILL_TIR_RAFALE,Tir en rafale,Rapid Volley
 MENU_CHOOSE_HERO,Qui équiper ?,Who to equip?
 MENU_UNEQUIP,(Retirer),(Remove)
-MENU_NOTHING_TO_EQUIP,Rien à équiper ici. La marchande du village en vend.,Nothing to equip here. The village merchant sells some.
 MENU_NO_ITEMS,Aucun objet.,No items.
-SLOT_WEAPON,Arme,Weapon
-SLOT_ARMOR,Armure,Armor
-SLOT_ACCESSORY,Accessoire,Accessory
 SHOP_TITLE,Boutique de Lise,Lise's Shop
 SHOP_OWNED,Possédé,Owned
 SHOP_HINT,[Espace] Acheter    [Échap] Partir,[Space] Buy    [Esc] Leave
 ITEM_GRANDE_POTION,Grande potion,Hi-Potion
-EQUIP_EPEE_ACIER,Épée d'acier,Steel Sword
-EQUIP_BATON_BRAISE,Bâton de braise,Ember Staff
-EQUIP_ARC_IF,Arc en if,Yew Bow
-EQUIP_COTTE_MAILLES,Cotte de mailles,Chainmail
-EQUIP_CAPE_VOYAGE,Cape de voyage,Travel Cloak
-EQUIP_ANNEAU_VIE,Anneau de vie,Ring of Life
-EQUIP_AMULETTE_CELERITE,Amulette de célérité,Swiftness Amulet
 SKILL_BRISE_GARDE,Brise-garde,Guard Breaker
 SKILL_METEORE_BRAISE,Météore de braise,Ember Meteor
 SKILL_TIR_PERCANT,Tir perçant,Piercing Shot

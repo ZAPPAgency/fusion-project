@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" path="res://data/card_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/characters/fenn.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"arc_tempete"
+display_name = "CARD_ARC_TEMPETE"
+rarity = 2
+for_hero = &"fenn"
+art_source = ExtResource("2")
+attack = 8
+speed = 2
+attack_per_rank = 2.0
+passive = 2
+passive_value = 1.0

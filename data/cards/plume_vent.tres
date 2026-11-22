@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" path="res://data/card_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"plume_vent"
+display_name = "CARD_PLUME_VENT"
+price = 45
+speed = 1
+speed_per_rank = 0.5

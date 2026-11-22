@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" path="res://data/card_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/characters/ysolde.tres" id="2"]
+[ext_resource type="Resource" path="res://data/skills/braise_apaisante.tres" id="3"]
+
+[resource]
+script = ExtResource("1")
+id = &"braise_apaisante"
+display_name = "CARD_BRAISE_APAISANTE"
+rarity = 1
+for_hero = &"ysolde"
+art_source = ExtResource("2")
+max_hp = 5
+max_hp_per_rank = 3.0
+skill = ExtResource("3")

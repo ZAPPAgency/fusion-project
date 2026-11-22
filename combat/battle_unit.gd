@@ -1,7 +1,7 @@
 class_name BattleUnit
 extends RefCounted
 ## État d'un combattant pendant un combat (PV, PA, stats). Aucun affichage ici.
-## Ennemis : stats de leur fiche. Héros : stats de leur progression (niveau + équipement).
+## Ennemis : stats de leur fiche. Héros : stats de leur progression (niveau + cartes).
 
 signal hp_changed(hp: int, max_hp: int)
 signal ap_changed(ap: int)
@@ -19,6 +19,8 @@ var defense: int
 var speed: int
 var level := 1
 var skills: Array[SkillData] = []  ## Compétences utilisables (hors attaque de base)
+var passives := {}  # CardData.Passive -> valeur totale (cartes équipées)
+var timing_bonus_ms := 0.0  ## Fenêtres de timing élargies par les cartes
 var display_name: String  ## Nom traduit, avec une lettre si plusieurs ennemis identiques
 var short_name: String  ## Initiale(s) affichée(s) dans la frise des tours
 
@@ -49,6 +51,21 @@ func apply_progress(progress: HeroProgress) -> void:
 	speed = progress.speed()
 	skills = progress.skills()
 	hp = progress.hp
+	for kind in CardData.Passive.values():
+		if progress.passive(kind) != 0.0:
+			passives[kind] = progress.passive(kind)
+	timing_bonus_ms = progress.timing_bonus_ms()
+	ap = mini(START_AP + passive_ap(CardData.Passive.START_AP), MAX_AP)
+
+
+## Valeur d'un effet passif des cartes (0 si aucune carte ne le donne).
+func passive(kind: CardData.Passive) -> float:
+	return passives.get(kind, 0.0)
+
+
+## Effet passif qui donne des PA (nombre entier).
+func passive_ap(kind: CardData.Passive) -> int:
+	return roundi(passive(kind))
 
 
 ## Distingue deux ennemis identiques : "Squelette A", "Squelette B".

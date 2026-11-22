@@ -18,6 +18,14 @@ func _init(windows: Dictionary, latency_ms := 0.0) -> void:
 	_latency_ms = latency_ms
 
 
+## Copie des fenêtres, toutes élargies de `bonus_ms` (aide au timing des cartes).
+static func widened(windows: Dictionary, bonus_ms: float) -> Dictionary:
+	var result := {}
+	for key in windows:
+		result[key] = windows[key] + bonus_ms
+	return result
+
+
 ## `offset_ms` = instant de l'appui − instant de l'impact (négatif = en avance).
 func judge_attack(offset_ms: float) -> Result:
 	var distance := _distance(offset_ms)

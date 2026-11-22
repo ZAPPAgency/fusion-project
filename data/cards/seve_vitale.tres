@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" path="res://data/card_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/enemies/champignon_putride.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"seve_vitale"
+display_name = "CARD_SEVE_VITALE"
+price = 40
+art_source = ExtResource("2")
+max_hp = 20
+max_hp_per_rank = 6.0

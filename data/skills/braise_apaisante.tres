@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Script" path="res://data/skill_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"braise_apaisante"
+display_name = "SKILL_BRAISE_APAISANTE"
+target = 3
+effect = 1
+power = 1.0
+ap_cost = 4
+impact_times = PackedFloat32Array(0.5)
+melee = false
+impact_fx = &"fire"

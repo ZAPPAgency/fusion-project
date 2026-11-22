@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" path="res://data/card_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"amulette_celerite"
+display_name = "CARD_AMULETTE_CELERITE"
+rarity = 1
+price = 80
+speed = 2
+speed_per_rank = 0.5

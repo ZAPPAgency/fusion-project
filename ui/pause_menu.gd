@@ -1,20 +1,18 @@
 class_name PauseMenu
 extends CanvasLayer
-## Menu de pause (Tab / Start) : équipe, équipement, objets.
+## Menu de pause (Tab / Start) : équipe, cartes équipées, collection, objets.
 ## Le jeu est en pause tant que le menu est ouvert. Échap revient en arrière, puis ferme.
 
 signal closed
 
-const SLOT_NAMES := {
-	EquipmentData.Slot.WEAPON: "SLOT_WEAPON",
-	EquipmentData.Slot.ARMOR: "SLOT_ARMOR",
-	EquipmentData.Slot.ACCESSORY: "SLOT_ACCESSORY",
-}
+const GRID_COLUMNS := 5
+const GRID_SIZE := Vector2(454, 212)  ## Zone défilante des grilles de cartes (2 rangées visibles)
 
 var _tabs: VBoxContainer
 var _content: VBoxContainer
 var _gold: Label
 var _back: Callable  ## Que faire sur Échap (revenir en arrière ou fermer)
+var _details: Label  ## Détails de la carte sélectionnée
 
 
 func _ready() -> void:
@@ -42,7 +40,8 @@ func _ready() -> void:
 	_tabs = VBoxContainer.new()
 	left_box.add_child(_tabs)
 	_tabs.add_child(UiTheme.button(tr("MENU_TEAM"), _show_team))
-	_tabs.add_child(UiTheme.button(tr("MENU_EQUIPMENT"), _show_equipment_heroes))
+	_tabs.add_child(UiTheme.button(tr("MENU_CARDS"), _show_card_heroes))
+	_tabs.add_child(UiTheme.button(tr("MENU_COLLECTION"), _show_collection))
 	_tabs.add_child(UiTheme.button(tr("MENU_ITEMS"), _show_items))
 	_tabs.add_child(UiTheme.button(tr("MENU_CLOSE"), close))
 	var spacer := Control.new()
@@ -106,11 +105,11 @@ func _hero_card(progress: HeroProgress) -> Control:
 	box.add_child(UiTheme.label("%s   %s %d   XP %s" % [tr(progress.data.display_name), tr("LEVEL_SHORT"), progress.level, xp_text],
 		progress.data.placeholder_color.lightened(0.3), 11))
 	box.add_child(UiTheme.label(_stats_text(progress)))
-	var gear: Array[String] = []
-	for slot in SLOT_NAMES:
-		var item := progress.equipped(slot)
-		gear.append("%s : %s" % [tr(SLOT_NAMES[slot]), tr(item.display_name) if item else "-"])
-	box.add_child(UiTheme.label("   ".join(gear), UiTheme.DIM))
+	var names: Array[String] = []
+	for card in progress.equipped_cards():
+		names.append(tr(card.data.display_name))
+	var cards_text := ", ".join(names) if not names.is_empty() else "-"
+	box.add_child(UiTheme.label("%s : %s" % [tr("MENU_CARDS"), cards_text], UiTheme.DIM))
 	return box
 
 
@@ -120,52 +119,143 @@ func _stats_text(progress: HeroProgress) -> String:
 		tr("STAT_DEF"), progress.defense(), tr("STAT_SPD"), progress.speed()]
 
 
-# --- Équipement -------------------------------------------------------------------
+# --- Cartes ------------------------------------------------------------------------
 
-func _show_equipment_heroes() -> void:
+func _show_card_heroes() -> void:
 	UiTheme.clear(_content)
 	_content.add_child(UiTheme.label(tr("MENU_CHOOSE_HERO"), UiTheme.GOLD))
 	for progress in GameState.heroes:
-		_content.add_child(UiTheme.button(tr(progress.data.display_name), _show_slots.bind(progress)))
+		_content.add_child(UiTheme.button(tr(progress.data.display_name), _show_card_slots.bind(progress)))
 	_back = _focus_tabs
 	UiTheme.focus_first(_content)
 
 
-func _show_slots(progress: HeroProgress) -> void:
+## Les 5 emplacements du héros (verrouillés tant que son niveau est trop bas).
+func _show_card_slots(progress: HeroProgress, focus_slot := 0) -> void:
 	UiTheme.clear(_content)
 	_content.add_child(_hero_card(progress))
-	for slot in SLOT_NAMES:
-		var item := progress.equipped(slot)
-		var text := "%s : %s" % [tr(SLOT_NAMES[slot]), tr(item.display_name) if item else "-"]
-		if item:
-			text += "   (%s)" % item.bonus_text()
-		_content.add_child(UiTheme.button(text, _show_choices.bind(progress, slot)))
-	_back = _show_equipment_heroes
-	UiTheme.focus_first(_content)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	_content.add_child(row)
+	for slot in HeroProgress.SLOT_UNLOCK_LEVELS.size():
+		var locked_level: int = 0 if slot < progress.card_slots() else HeroProgress.SLOT_UNLOCK_LEVELS[slot]
+		var button := CardButton.new(progress.slots[slot], locked_level)
+		button.pressed.connect(_show_card_choices.bind(progress, slot))
+		button.focused.connect(_describe_card)
+		row.add_child(button)
+	_add_details()
+	_back = _show_card_heroes
+	row.get_child(focus_slot).grab_focus()
 
 
-func _show_choices(progress: HeroProgress, slot: EquipmentData.Slot) -> void:
+## Cartes de la collection qui peuvent aller dans cet emplacement.
+func _show_card_choices(progress: HeroProgress, slot: int) -> void:
 	UiTheme.clear(_content)
-	_content.add_child(_hero_card(progress))
-	_content.add_child(UiTheme.label(tr(SLOT_NAMES[slot]), UiTheme.GOLD))
-	for equipment_id in GameState.equipment_bag:
-		var item := GameState.equipment_data(equipment_id)
-		if item.slot != slot or not item.can_be_used_by(progress.data.id):
-			continue
-		var text := "%s  x%d   (%s)" % [tr(item.display_name), GameState.equipment_bag[equipment_id], item.bonus_text()]
-		_content.add_child(UiTheme.button(text, _equip.bind(progress, slot, item)))
-	if progress.equipped(slot):
-		_content.add_child(UiTheme.button(tr("MENU_UNEQUIP"), _equip.bind(progress, slot, null)))
-	if _content.get_child_count() == 2:
+	var header := HBoxContainer.new()
+	_content.add_child(header)
+	var title := UiTheme.label(tr(progress.data.display_name), UiTheme.GOLD)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(title)
+	if progress.slots[slot]:
+		header.add_child(UiTheme.button(tr("MENU_UNEQUIP"), _equip_card.bind(progress, slot, null)))
+
+	var choices := GameState.cards.filter(func(card: CardInstance) -> bool:
+		return card != progress.slots[slot] and progress.can_equip(slot, card))
+	# Cartes libres d'abord, puis les plus rares.
+	choices.sort_custom(func(a: CardInstance, b: CardInstance) -> bool:
+		var a_free := GameState.owner_of(a) == null
+		var b_free := GameState.owner_of(b) == null
+		if a_free != b_free:
+			return a_free
+		return _rarer_first(a, b))
+	var grid := _card_grid(choices, func(card: CardInstance) -> void: _equip_card(progress, slot, card))
+	if choices.is_empty():
 		_content.add_child(UiTheme.label(tr("MENU_NOTHING_TO_EQUIP"), UiTheme.DIM))
-	_back = _show_slots.bind(progress)
-	UiTheme.focus_first(_content)
+	_add_details()
+	_back = _show_card_slots.bind(progress, slot)
+	if grid.get_child_count() > 0:
+		grid.get_child(0).grab_focus()
+	else:
+		UiTheme.focus_first(header)
 
 
-func _equip(progress: HeroProgress, slot: EquipmentData.Slot, item: EquipmentData) -> void:
-	GameState.equip(progress, slot, item)
+func _equip_card(progress: HeroProgress, slot: int, card: CardInstance) -> void:
+	GameState.equip_card(progress, slot, card)
 	AudioManager.play_cue()
-	_show_slots(progress)
+	_show_card_slots(progress, slot)
+
+
+# --- Collection ---------------------------------------------------------------------
+
+func _show_collection() -> void:
+	UiTheme.clear(_content)
+	var cards := GameState.cards.duplicate()
+	cards.sort_custom(_rarer_first)
+	var grid := _card_grid(cards, func(_card: CardInstance) -> void: pass)
+	if cards.is_empty():
+		_content.add_child(UiTheme.label(tr("MENU_COLLECTION_EMPTY"), UiTheme.DIM))
+	_add_details()
+	_back = _focus_tabs
+	if grid.get_child_count() > 0:
+		grid.get_child(0).grab_focus()
+
+
+# --- Outils des pages de cartes -------------------------------------------------------
+
+## Grille défilante de cartes ; `on_pressed(card)` est appelé quand on en choisit une.
+func _card_grid(cards: Array, on_pressed: Callable) -> GridContainer:
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = GRID_SIZE
+	scroll.follow_focus = true
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_content.add_child(scroll)
+	var grid := GridContainer.new()
+	grid.columns = GRID_COLUMNS
+	grid.add_theme_constant_override("h_separation", 4)
+	grid.add_theme_constant_override("v_separation", 4)
+	scroll.add_child(grid)
+	for card: CardInstance in cards:
+		var button := CardButton.new(card)
+		button.view.dimmed = GameState.owner_of(card) != null
+		button.pressed.connect(on_pressed.bind(card))
+		button.focused.connect(_describe_card)
+		grid.add_child(button)
+	return grid
+
+
+func _add_details() -> void:
+	_details = UiTheme.label("", Color.WHITE, 9)
+	_details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_details.custom_minimum_size = Vector2(450, 40)
+	_content.add_child(_details)
+
+
+## Détails de la carte : nom, rareté, rang, effets, à qui elle est réservée ou qui la porte.
+func _describe_card(card: CardInstance) -> void:
+	if card == null:
+		_details.text = ""
+		return
+	var lines: Array[String] = []
+	lines.append("%s   %s   %s" % [tr(card.data.display_name), tr(CardData.RARITY_NAMES[card.data.rarity]),
+		tr("CARD_RANK").format({"rank": card.rank})])
+	lines.append("   ".join(card.effect_lines()))
+	var notes: Array[String] = []
+	if card.data.for_hero != &"":
+		notes.append(tr("CARD_FOR_HERO").format({"hero": tr("HERO_" + String(card.data.for_hero).to_upper())}))
+	var holder := GameState.owner_of(card)
+	if holder:
+		notes.append(tr("CARD_EQUIPPED_BY").format({"hero": tr(holder.data.display_name)}))
+	if not notes.is_empty():
+		lines.append("   ".join(notes))
+	_details.text = "\n".join(lines)
+
+
+func _rarer_first(a: CardInstance, b: CardInstance) -> bool:
+	if a.data.rarity != b.data.rarity:
+		return a.data.rarity > b.data.rarity
+	if a.data.id != b.data.id:
+		return tr(a.data.display_name) < tr(b.data.display_name)
+	return a.rank > b.rank
 
 
 # --- Objets -------------------------------------------------------------------------

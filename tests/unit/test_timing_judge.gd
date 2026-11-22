@@ -43,3 +43,9 @@ func test_success_results() -> void:
 	assert_true(TimingJudge.is_success(R.DODGE))
 	assert_false(TimingJudge.is_success(R.MISS))
 	assert_false(TimingJudge.is_success(R.HIT))
+
+
+func test_widened_windows_add_the_bonus_everywhere() -> void:
+	var windows := TimingJudge.widened({"perfect": 60, "good": 130, "parry": 80, "dodge": 160}, 15.0)
+	assert_eq(windows.perfect, 75.0)
+	assert_eq(windows.dodge, 175.0)

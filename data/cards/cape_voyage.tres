@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" path="res://data/card_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"cape_voyage"
+display_name = "CARD_CAPE_VOYAGE"
+price = 45
+defense = 2
+max_hp = 15
+defense_per_rank = 0.5
+max_hp_per_rank = 4.0

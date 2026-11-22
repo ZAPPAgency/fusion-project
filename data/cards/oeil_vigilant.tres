@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" path="res://data/card_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/enemies/oeil_spectral.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"oeil_vigilant"
+display_name = "CARD_OEIL_VIGILANT"
+rarity = 1
+art_source = ExtResource("2")
+timing_bonus_ms = 15.0
+timing_bonus_per_rank = 5.0

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" path="res://data/card_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"anneau_vie"
+display_name = "CARD_ANNEAU_VIE"
+rarity = 1
+max_hp = 25
+max_hp_per_rank = 8.0
