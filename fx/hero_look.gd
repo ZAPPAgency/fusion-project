@@ -355,6 +355,9 @@ func _draw_halo(canvas: CanvasItem) -> void:
 ## en bas, orange puis pointe rouge en haut. La hauteur des pointes vacille (bruit).
 ## Le ruban est épais à la tête et s'affine vers la queue. Un point est devant le corps
 ## quand il est sur la moitié avant du cercle.
+## Pour que le feu soit irrégulier tout au long de la montée, deux bruits qui dépendent de la
+## hauteur et du temps font varier le ruban : épaisseur (renflements et passages fins), trous,
+## grandes flammes qui jaillissent, ondulation de la trajectoire et points plus chauds.
 func _draw_fire_spiral(canvas: CanvasItem, back: bool) -> void:
 	var height := _spiral_height()
 	for strand in 2:
@@ -373,20 +376,29 @@ func _draw_fire_spiral(canvas: CanvasItem, back: bool) -> void:
 			if (sin(angle) < 0.0) != back:
 				continue
 			var flicker := (_noise.get_noise_2d(i * 5.0 + strand * 40.0, _time * 90.0) + 1.0) * 0.5
-			_draw_flame_column(canvas, _spiral_point(strand, y).floor(), behind, flicker, fade)
+			var shape := _noise.get_noise_2d(y * 2.5 + strand * 100.0, _time * 35.0)  # -1 à 1
+			var flare := _noise.get_noise_2d(y * 1.2 + strand * 60.0 + 500.0, _time * 25.0)
+			if behind > 0.12 and shape < -0.35:
+				continue  # le ruban se déchire par endroits
+			var point := _spiral_point(strand, y, 1.0 + flare * 0.18) + Vector2(0, roundf(shape * 2.0))
+			# Grandes flammes aux pointes déchiquetées : leur hauteur varie d'une colonne à l'autre.
+			var flame_height := maxf(0.0, flare) * 16.0 * (0.4 + flicker)
+			_draw_flame_column(canvas, point.floor(), behind, flicker, fade, 1.0 + shape * 0.7, flame_height)
 
 
 ## Une colonne de flamme de 2 pixels de large posée sur le ruban.
-func _draw_flame_column(canvas: CanvasItem, base: Vector2, behind: float, flicker: float, fade: float) -> void:
+## `swell` : épaisseur relative à cet endroit ; `flare` : hauteur en plus d'une grande flamme.
+func _draw_flame_column(canvas: CanvasItem, base: Vector2, behind: float, flicker: float, fade: float,
+		swell := 1.0, flare := 0.0) -> void:
 	var alpha := (1.0 - behind * 0.8) * fade
 	var taper := clampf(behind / 0.1, 0.4, 1.0)  # la tête du ruban se termine en pointe
-	var thickness := maxf(1.0, roundf(lerpf(5.0, 2.0, behind) * taper))
-	var tongue := roundf(thickness * 0.6 + flicker * 8.0 * (1.0 - behind))  # pointe au-dessus du ruban
+	var thickness := maxf(1.0, roundf(lerpf(5.0, 2.0, behind) * taper * swell))
+	var tongue := roundf(thickness * 0.6 + (flicker * 8.0 + flare) * (1.0 - behind))  # pointe au-dessus du ruban
 	var bottom := base.y + ceilf(thickness * 0.5)
 	var top := base.y - tongue
 	var core_top := bottom - maxf(2.0, thickness * 0.8)
 	var middle_top := core_top - roundf((core_top - top) * 0.45)
-	var hot := behind < 0.35  # la tête est plus chaude que la queue
+	var hot := behind < 0.35 or swell > 1.3  # la tête et les renflements sont plus chauds
 	# Bord sombre autour de la colonne : donne du volume et une silhouette de flamme.
 	canvas.draw_rect(Rect2(base.x - 1, top + 1, 4, bottom - top), Color(FIRE_RAMP[3], FIRE_RAMP[3].a * alpha * 0.7))
 	canvas.draw_rect(Rect2(base.x, top, 2, middle_top - top), Color(FIRE_RAMP[2 if hot else 3], alpha))
@@ -408,9 +420,10 @@ func _spiral_angle(strand: int, y: float) -> float:
 
 
 ## Point de la spirale à la hauteur `y` : le cercle se resserre un peu en montant.
-func _spiral_point(strand: int, y: float) -> Vector2:
+## `wobble` : écart au cercle (1 = sur le cercle) pour que la trajectoire ondule.
+func _spiral_point(strand: int, y: float, wobble := 1.0) -> Vector2:
 	var angle := _spiral_angle(strand, y)
-	var radius := (body_size.x * 0.7 + 3.0) * lerpf(1.0, 0.7, y / _spiral_height())
+	var radius := (body_size.x * 0.7 + 3.0) * lerpf(1.0, 0.7, y / _spiral_height()) * wobble
 	return Vector2(cos(angle) * radius, -y + sin(angle) * radius * 0.3)
 
 
