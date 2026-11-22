@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="HeroStage" format=3]
+
+[ext_resource type="Script" path="res://data/hero_stage.gd" id="1"]
+[ext_resource type="Resource" path="res://data/skills/renaissance_phenix.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+title = "STAGE_YSOLDE_3"
+max_hp = 60
+attack = 20
+defense = 7
+speed = 2
+skill = ExtResource("2")
+required_level = 8
+gold = 1000
+materials = {
+&"eclat_cloche": 8,
+&"larme_lune": 3
+}
+recolor_hue_min = 0.64
+recolor_hue_max = 0.86
+recolor_hue_target = 0.09
+recolor_saturation = 1.0
+recolor_value = 1.3
+metal_tint = Color(1.0, 0.8, 0.5, 1)
+metal_amount = 0.3
+outline_color = Color(3.0, 1.6, 0.4, 1.0)
+aura_color = Color(3.0, 1.8, 0.5, 1)
+aura_level = 2
+sprite_scale = 1.12

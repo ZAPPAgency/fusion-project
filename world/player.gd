@@ -1,7 +1,7 @@
 class_name Player
 extends CharacterBody2D
 ## Le joueur sur la carte : déplacement 8 directions, interaction (Espace), caméra qui suit.
-## Le personnage affiché est le chef de l'équipe (Aldric).
+## Le personnage affiché est le chef de l'équipe (Aldric), avec l'apparence de son stade d'évolution.
 
 const SPEED := 120.0
 const INTERACT_RANGE := 40.0
@@ -12,6 +12,7 @@ var auto_path: Array[Vector2] = []  ## Points à rejoindre automatiquement (dém
 var _sprite: AnimatedSprite2D
 var _camera: Camera2D
 var _highlighted: Interactable
+var _look: HeroLook
 
 
 func _ready() -> void:
@@ -30,11 +31,26 @@ func _ready() -> void:
 	_sprite.offset = leader.sprite_frames.get_meta("feet_offset", Vector2.ZERO)
 	_sprite.play(&"idle")
 	add_child(_sprite)
+	refresh_look()
 
 	_camera = Camera2D.new()
 	_camera.position_smoothing_enabled = true
 	_camera.position_smoothing_speed = 6.0
 	add_child(_camera)
+
+
+## Applique l'apparence du stade d'évolution du chef (appelé aussi après une évolution à la forge).
+func refresh_look() -> void:
+	var leader := GameState.heroes[0]
+	var stage := leader.stage_data() if leader.stage > 0 else null
+	_sprite.material = HeroLook.make_material(stage)
+	_sprite.scale = Vector2.ONE * (stage.sprite_scale if stage else 1.0)
+	if _look:
+		_look.queue_free()
+	var body_size: Vector2 = leader.data.sprite_frames.get_meta("body_size", Vector2(20, 40)) * _sprite.scale
+	_look = HeroLook.new(stage, body_size)
+	add_child(_look)
+	move_child(_look, _sprite.get_index())  # derrière le sprite
 
 
 ## Empêche la caméra de montrer l'extérieur de la carte.
@@ -96,7 +112,7 @@ func _update_highlight() -> void:
 func _animate(direction: Vector2) -> void:
 	_sprite.play(&"run" if direction != Vector2.ZERO else &"idle")
 	if absf(direction.x) > 0.1:
-		_sprite.scale.x = signf(direction.x)
+		_sprite.scale.x = signf(direction.x) * absf(_sprite.scale.y)  # garde la taille du stade d'évolution
 
 
 ## Ombre au sol.

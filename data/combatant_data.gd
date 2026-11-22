@@ -23,6 +23,8 @@ extends Resource
 @export var attack_growth := 2.0
 @export var defense_growth := 1.0
 @export var speed_growth := 0.5
+## Stades d'évolution (forge) : le premier est la forme de départ. Vide = n'évolue pas.
+@export var stages: Array[HeroStage] = []
 
 @export_group("Récompenses (ennemis)")
 @export var xp_reward := 10

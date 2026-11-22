@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" path="res://data/card_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/enemies/squelette.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"danse_os"
+display_name = "CARD_DANSE_OS"
+rarity = 1
+art_source = ExtResource("2")
+attack = 4
+speed = 2
+attack_per_rank = 1.0
+speed_per_rank = 0.5

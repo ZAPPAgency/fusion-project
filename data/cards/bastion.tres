@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" path="res://data/card_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"bastion"
+display_name = "CARD_BASTION"
+rarity = 1
+defense = 5
+max_hp = 30
+defense_per_rank = 1.0
+max_hp_per_rank = 6.0

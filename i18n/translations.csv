@@ -151,3 +151,68 @@ TITLE_SUBTITLE,La Cloche Fêlée,The Cracked Bell
 TITLE_CONTINUE,Continuer,Continue
 TITLE_NEW_GAME,Nouvelle partie,New Game
 TITLE_QUIT,Quitter,Quit
+CARD_CROC_LICHE,Croc de liche,Lich Fang
+CARD_SEVE_ETERNELLE,Sève éternelle,Eternal Sap
+CARD_PLUME_TEMPETE,Plume de tempête,Storm Feather
+CARD_COEUR_PHENIX,Cœur de phénix,Phoenix Heart
+CARD_OEIL_TEMPS,Œil du temps,Eye of Time
+CARD_LAME_CHAMPION,Lame du Champion,Champion's Blade
+CARD_SCEPTRE_PHENIX,Sceptre du phénix,Phoenix Scepter
+CARD_ARC_ETOILES,Arc des étoiles,Starbow
+CARD_EGIDE_CLOCHE,Égide de la Cloche,Aegis of the Bell
+CARD_DANSE_OS,Danse des os,Bone Dance
+CARD_BASTION,Bastion,Bastion
+CARD_RIPOSTE_ECLAIR,Riposte éclair,Lightning Riposte
+CARD_MANTEAU_PARADE,Manteau de parade,Parrying Mantle
+CARD_OEIL_GARDIEN,Œil du gardien,Guardian's Eye
+MAT_FRAGMENT_CENDRE,Fragment de cendre,Ash Fragment
+MAT_MINERAI_FER,Minerai de fer,Iron Ore
+MAT_ECLAT_CLOCHE,Éclat de cloche,Bell Shard
+MAT_LARME_LUNE,Larme de lune,Moon Tear
+STAGE_ALDRIC_1,Chevalier déchu,Fallen Knight
+STAGE_ALDRIC_2,Paladin de cendre,Ash Paladin
+STAGE_ALDRIC_3,Champion de la Cloche,Champion of the Bell
+STAGE_YSOLDE_1,Mage de braise,Ember Mage
+STAGE_YSOLDE_2,Pyromancienne,Pyromancer
+STAGE_YSOLDE_3,Phénix de Valbrune,Phoenix of Valbrune
+STAGE_FENN_1,Rôdeuse,Ranger
+STAGE_FENN_2,Traqueuse du vent,Windstalker
+STAGE_FENN_3,Sentinelle astrale,Astral Sentinel
+SKILL_JUGEMENT_CENDRE,Jugement de cendre,Ash Judgment
+SKILL_GLAS_CHAMPION,Glas du champion,Champion's Knell
+SKILL_COLONNE_FEU,Colonne de feu,Fire Pillar
+SKILL_RENAISSANCE_PHENIX,Renaissance du phénix,Phoenix Rebirth
+SKILL_FLECHE_VENT,Flèche du vent,Wind Arrow
+SKILL_PLUIE_ETOILES,Pluie d'étoiles,Starfall
+TITLE_TEST_GAME,Partie de test,Test Game
+NPC_SMITH,Gorm le forgeron,Gorm the Smith
+DLG_SMITH_1,Ma forge est la plus chaude de Valbrune. Montre-moi tes cartes.,My forge is the hottest in Valbrune. Show me your cards.
+FORGE_TITLE,Forge de Gorm,Gorm's Forge
+FORGE_TAB_UPGRADE,Améliorer,Upgrade
+FORGE_TAB_FUSION,Fusionner,Fuse
+FORGE_TAB_EVOLVE,Évoluer,Evolve
+FORGE_TAB_CRAFT,Fabriquer,Craft
+FORGE_TAB_HEROES,Héros,Heroes
+FORGE_UPGRADE,Améliorer (rang {rank}),Upgrade (rank {rank})
+FORGE_MERGE,Fusionner un doublon (x{count}),Merge a duplicate (x{count})
+FORGE_MAX_RANK,Rang maximum,Max rank
+FORGE_NEXT_RANK,Rang {from} → {to},Rank {from} → {to}
+FORGE_FUSE,Fusionner,Fuse
+FORGE_CRAFT,Fabriquer,Craft
+FORGE_EVOLVE,Faire évoluer,Evolve
+FORGE_NEEDS_MAX_RANK,Rang {rank} requis (actuel : {current}),Rank {rank} required (current: {current})
+FORGE_NO_EVOLUTION,Cette carte n'évolue pas.,This card does not evolve.
+FORGE_MISSING,Manquante,Missing
+FORGE_COST,Coût,Cost
+FORGE_NOTHING,Rien ici pour l'instant.,Nothing here yet.
+FORGE_HINT,[Espace] Choisir    [Échap] Retour,[Space] Select    [Esc] Back
+FORGE_RANK_UP,Rang {rank} !,Rank {rank}!
+FORGE_NEW_CARD,Nouvelle carte !,New card!
+FORGE_CARD_EVOLVED,Évolution !,Evolution!
+FORGE_STAGE,Stade {stage} / {max},Stage {stage} / {max}
+FORGE_STAGE_MAX,Forme ultime atteinte,Ultimate form reached
+FORGE_LEVEL_REQUIRED,Niveau {level} requis (actuel : {current}),Level {level} required (current: {current})
+FORGE_NEW_SKILL,Nouvelle compétence : {skill},New skill: {skill}
+FORGE_HERO_EVOLVED,{hero} devient {title} !,{hero} becomes {title}!
+FORGE_CONTINUE,[Espace] Continuer,[Space] Continue
+MENU_MATERIALS,Matériaux,Materials

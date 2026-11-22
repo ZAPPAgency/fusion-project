@@ -5,8 +5,9 @@ extends Interactable
 @export var speaker := ""  ## Clé de traduction du nom, ex. "NPC_ELDER"
 @export var lines: Array[String] = []  ## Clés de traduction des répliques
 @export var heals_party := false  ## L'aubergiste soigne l'équipe et propose de sauvegarder
-@export var shop_stock: PackedStringArray = []  ## Marchand : objets et équipements en vente
+@export var shop_stock: PackedStringArray = []  ## Marchand : objets et cartes en vente
 @export var shop_name := "SHOP_TITLE"
+@export var opens_forge := false  ## Forgeron : ouvre la forge (cartes et évolutions)
 @export var robe_color := Color("6b4a8a")
 @export var hair_color := Color("d8d2c4")
 
@@ -32,6 +33,10 @@ func interact(_player: Node2D) -> void:
 		shop.shop_name = shop_name
 		get_tree().current_scene.add_child(shop)
 		await shop.closed
+	if opens_forge:
+		var forge := ForgeMenu.new()
+		get_tree().current_scene.add_child(forge)
+		await forge.closed
 
 
 ## Villageois en pixels : ombre, robe, ceinture, tête, cheveux.

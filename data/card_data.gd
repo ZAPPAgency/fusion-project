@@ -52,6 +52,7 @@ const RARITY_COLORS := [Color("9a8f7d"), Color("4f8fd6"), Color("a05ad6"), Color
 @export_group("Évolution")
 @export var evolves_into: CardData  ## Carte obtenue en faisant évoluer celle-ci au rang max
 @export var evolution_material: StringName  ## Matériau nécessaire pour l'évolution
+@export var evolution_material_count := 1
 
 
 func can_be_used_by(hero_id: StringName) -> bool:

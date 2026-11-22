@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" path="res://data/card_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"manteau_parade"
+display_name = "CARD_MANTEAU_PARADE"
+rarity = 2
+defense = 4
+max_hp = 20
+defense_per_rank = 1.0
+max_hp_per_rank = 5.0
+passive = 1
+passive_value = 2.0

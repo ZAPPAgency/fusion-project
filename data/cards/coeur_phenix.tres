@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" path="res://data/card_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"coeur_phenix"
+display_name = "CARD_COEUR_PHENIX"
+rarity = 2
+max_hp = 60
+defense = 2
+max_hp_per_rank = 15.0
+defense_per_rank = 0.5

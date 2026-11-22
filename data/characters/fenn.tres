@@ -7,6 +7,10 @@
 [ext_resource type="Resource" path="res://data/skills/pluie_fleches.tres" id="5_85gxw"]
 [ext_resource type="Resource" path="res://data/skills/tir_percant.tres" id="6_o8pra"]
 [ext_resource type="SpriteFrames" path="res://assets/sprites/fenn/sprite_frames.tres" id="6_w6b4s"]
+[ext_resource type="Script" path="res://data/hero_stage.gd" id="stage_script"]
+[ext_resource type="Resource" path="res://data/stages/fenn_1.tres" id="stage_1"]
+[ext_resource type="Resource" path="res://data/stages/fenn_2.tres" id="stage_2"]
+[ext_resource type="Resource" path="res://data/stages/fenn_3.tres" id="stage_3"]
 
 [resource]
 script = ExtResource("2_w6b4s")
@@ -22,3 +26,4 @@ hp_growth = 9.0
 speed_growth = 0.7
 basic_attack = ExtResource("1_w6b4s")
 skills = Array[ExtResource("3_o8pra")]([ExtResource("4_01njf"), ExtResource("5_85gxw"), ExtResource("6_o8pra")])
+stages = Array[ExtResource("stage_script")]([ExtResource("stage_1"), ExtResource("stage_2"), ExtResource("stage_3")])

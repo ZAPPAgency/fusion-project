@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="FusionRecipe" format=3]
+
+[ext_resource type="Script" path="res://data/fusion_recipe.gd" id="1"]
+[ext_resource type="Resource" path="res://data/cards/lame_reflechie.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+materials = {
+&"minerai_fer": 3,
+&"eclat_cloche": 2
+}
+gold = 60
+result = ExtResource("2")

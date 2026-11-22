@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="HeroStage" format=3]
+
+[ext_resource type="Script" path="res://data/hero_stage.gd" id="1"]
+[ext_resource type="Resource" path="res://data/skills/pluie_etoiles.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+title = "STAGE_FENN_3"
+max_hp = 70
+attack = 15
+defense = 7
+speed = 4
+skill = ExtResource("2")
+required_level = 8
+gold = 1000
+materials = {
+&"eclat_cloche": 8,
+&"larme_lune": 3
+}
+recolor_hue_min = 0.2
+recolor_hue_max = 0.45
+recolor_hue_target = 0.7
+recolor_saturation = 1.0
+recolor_value = 1.15
+metal_tint = Color(0.8, 0.85, 1.0, 1)
+metal_amount = 0.35
+outline_color = Color(1.1, 1.3, 1.9, 0.9)
+aura_color = Color(1.6, 1.8, 3.0, 1)
+aura_level = 2
+sprite_scale = 1.12

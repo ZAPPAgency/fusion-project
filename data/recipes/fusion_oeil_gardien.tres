@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="FusionRecipe" format=3]
+
+[ext_resource type="Script" path="res://data/fusion_recipe.gd" id="1"]
+[ext_resource type="Resource" path="res://data/cards/oeil_vigilant.tres" id="2"]
+[ext_resource type="Resource" path="res://data/cards/echo_cloche.tres" id="3"]
+[ext_resource type="Resource" path="res://data/cards/oeil_gardien.tres" id="4"]
+
+[resource]
+script = ExtResource("1")
+card_a = ExtResource("2")
+card_b = ExtResource("3")
+materials = {
+&"eclat_cloche": 2,
+&"larme_lune": 1
+}
+gold = 250
+result = ExtResource("4")

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" path="res://data/card_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/enemies/gardien_cloche.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+id = &"egide_cloche"
+display_name = "CARD_EGIDE_CLOCHE"
+rarity = 3
+art_source = ExtResource("2")
+defense = 12
+max_hp = 30
+defense_per_rank = 2.0
+max_hp_per_rank = 6.0
+passive = 1
+passive_value = 3.0

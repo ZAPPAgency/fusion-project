@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Script" path="res://data/skill_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"jugement_cendre"
+display_name = "SKILL_JUGEMENT_CENDRE"
+power = 2.6
+ap_cost = 5
+impact_times = PackedFloat32Array(0.45, 0.9, 1.35)
+hit_animations = Array[StringName]([&"attack1", &"attack2"])
+impact_fx = &"fire"

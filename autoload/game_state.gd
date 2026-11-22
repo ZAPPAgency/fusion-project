@@ -24,6 +24,12 @@ const TEST_ENCOUNTER_PATHS := [
 ## Temps (s) pendant lequel les ennemis de la carte ignorent le joueur après un combat.
 const ENCOUNTER_GRACE := 2.0
 
+## Partie de test : rangs des exemplaires donnés pour chaque carte, matériaux, or.
+const TEST_CARD_RANKS := [1, 1, 1, 3, 5]
+const TEST_MATERIALS := 99
+const TEST_GOLD := 99999
+const TEST_SPAWN := "forge"
+
 ## Version du format de sauvegarde (2 = cartes à la place de l'équipement).
 const SAVE_VERSION := 2
 
@@ -33,6 +39,8 @@ var gold := 0
 var inventory := {}  # id d'objet consommable (StringName) -> quantité
 var cards: Array[CardInstance] = []  ## Toutes les cartes du joueur, équipées ou non
 var next_card_uid := 1
+var materials := {}  # id de matériau (StringName) -> quantité
+var test_mode := false  ## Partie de test : tout débloqué, sauvegarde à part
 
 # --- Exploration ---
 var current_map := ""
@@ -64,6 +72,8 @@ func new_game() -> void:
 	inventory = {&"potion": 3, &"ether": 1}
 	cards.clear()
 	next_card_uid = 1
+	materials = {}
+	test_mode = false
 	for progress in heroes:
 		progress.equip(0, add_card(STARTER_CARDS[progress.data.id]))
 	heal_party()  # les PV max comptent maintenant les cartes de départ
@@ -77,6 +87,33 @@ func new_game() -> void:
 	for path in _encounter_paths():
 		next_encounter.append(load(path))
 	_battle_from_map = false
+
+
+## Partie de test (écran titre) : toutes les cartes en plusieurs exemplaires et rangs,
+## beaucoup de matériaux et d'or, héros au niveau maximum, départ à côté de la forge.
+## Elle est sauvegardée à part (voir SaveSystem) : la vraie partie n'est pas touchée.
+func new_test_game() -> void:
+	new_game()
+	test_mode = true
+	gold = TEST_GOLD
+	inventory = {&"potion": 20, &"grande_potion": 10, &"ether": 10}
+	for card_id in all_card_ids():
+		for rank in TEST_CARD_RANKS:
+			add_card(card_id, rank)
+	for file in ResourceLoader.list_directory("res://data/materials"):
+		add_material(StringName(file.get_basename()), TEST_MATERIALS)
+	for progress in heroes:
+		progress.add_xp(100000)
+	heal_party()
+	spawn_name = TEST_SPAWN
+
+
+## Identifiants de toutes les cartes du jeu (fichiers de data/cards).
+func all_card_ids() -> Array[StringName]:
+	var ids: Array[StringName] = []
+	for file in ResourceLoader.list_directory("res://data/cards"):
+		ids.append(StringName(file.get_basename()))
+	return ids
 
 
 func progress_of(hero: CombatantData) -> HeroProgress:
@@ -162,10 +199,12 @@ func item_data(item_id: StringName) -> ItemData:
 	return load("res://data/items/%s.tres" % item_id)
 
 
-## Objet consommable ou carte, selon l'identifiant.
+## Objet consommable, carte ou matériau, selon l'identifiant.
 func loot_data(loot_id: StringName) -> Resource:
 	if ResourceLoader.exists("res://data/cards/%s.tres" % loot_id):
 		return card_data(loot_id)
+	if ResourceLoader.exists("res://data/materials/%s.tres" % loot_id):
+		return material_data(loot_id)
 	return item_data(loot_id)
 
 
@@ -176,11 +215,14 @@ func has_items() -> bool:
 	return false
 
 
-## Ajoute un objet ou une carte (coffres, achats).
+## Ajoute un objet, une carte ou un matériau (coffres, achats).
 func add_loot(loot_id: StringName, amount := 1) -> void:
-	if loot_data(loot_id) is CardData:
+	var loot := loot_data(loot_id)
+	if loot is CardData:
 		for i in amount:
 			add_card(loot_id)
+	elif loot is MaterialData:
+		add_material(loot_id, amount)
 	else:
 		add_item(loot_id, amount)
 
@@ -203,6 +245,20 @@ func buy(loot_id: StringName) -> bool:
 	return true
 
 
+# --- Matériaux ---
+
+func material_data(material_id: StringName) -> MaterialData:
+	return load("res://data/materials/%s.tres" % material_id)
+
+
+func add_material(material_id: StringName, amount := 1) -> void:
+	materials[material_id] = materials.get(material_id, 0) + amount
+
+
+func material_count(material_id: StringName) -> int:
+	return materials.get(material_id, 0)
+
+
 # --- Cartes ---
 
 func card_data(card_id: StringName) -> CardData:
@@ -215,6 +271,14 @@ func add_card(card_id: StringName, rank := 1) -> CardInstance:
 	next_card_uid += 1
 	cards.append(card)
 	return card
+
+
+## Retire une carte de la collection (fusion, amélioration) ; elle est d'abord déséquipée.
+func remove_card(card: CardInstance) -> void:
+	var holder := owner_of(card)
+	if holder:
+		holder.equip(holder.slot_of(card), null)
+	cards.erase(card)
 
 
 ## Héros qui porte cette carte (null = carte libre).
@@ -243,11 +307,13 @@ func to_dict() -> Dictionary:
 		heroes_saved[String(progress.data.id)] = progress.to_dict()
 	return {
 		"version": SAVE_VERSION,
+		"test_mode": test_mode,
 		"heroes": heroes_saved,
 		"gold": gold,
 		"inventory": _string_keys(inventory),
 		"cards": cards.map(func(card: CardInstance) -> Dictionary: return card.to_dict()),
 		"next_card_uid": next_card_uid,
+		"materials": _string_keys(materials),
 		"map": current_map,
 		"position": [player_position.x, player_position.y] if player_position != null else null,
 		"defeated": defeated_encounters.keys(),
@@ -273,6 +339,8 @@ func load_dict(saved: Dictionary) -> void:
 		_convert_old_equipment(saved)
 	gold = int(saved.get("gold", START_GOLD))
 	inventory = _name_keys(saved.get("inventory", {}))
+	materials = _name_keys(saved.get("materials", {}))
+	test_mode = saved.get("test_mode", false)
 	current_map = saved.get("map", START_MAP)
 	var position = saved.get("position")
 	player_position = Vector2(position[0], position[1]) if position != null else null

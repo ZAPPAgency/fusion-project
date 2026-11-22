@@ -4,9 +4,8 @@ extends GutTest
 
 func _all_cards() -> Array[CardData]:
 	var cards: Array[CardData] = []
-	for file in DirAccess.get_files_at("res://data/cards"):
-		if file.ends_with(".tres"):
-			cards.append(load("res://data/cards/" + file))
+	for file in ResourceLoader.list_directory("res://data/cards"):
+		cards.append(load("res://data/cards/" + file))
 	return cards
 
 

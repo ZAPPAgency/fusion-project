@@ -102,7 +102,7 @@ func _hero_card(progress: HeroProgress) -> Control:
 	box.add_theme_constant_override("separation", 0)
 	var xp_text := tr("XP_MAX") if progress.level == HeroProgress.MAX_LEVEL \
 		else "%d / %d" % [progress.xp, HeroProgress.xp_to_next(progress.level)]
-	box.add_child(UiTheme.label("%s   %s %d   XP %s" % [tr(progress.data.display_name), tr("LEVEL_SHORT"), progress.level, xp_text],
+	box.add_child(UiTheme.label("%s   %s %d   XP %s" % [progress.full_title(), tr("LEVEL_SHORT"), progress.level, xp_text],
 		progress.data.placeholder_color.lightened(0.3), 11))
 	box.add_child(UiTheme.label(_stats_text(progress)))
 	var names: Array[String] = []
@@ -189,6 +189,7 @@ func _equip_card(progress: HeroProgress, slot: int, card: CardInstance) -> void:
 
 func _show_collection() -> void:
 	UiTheme.clear(_content)
+	_content.add_child(_materials_line())
 	var cards := GameState.cards.duplicate()
 	cards.sort_custom(_rarer_first)
 	var grid := _card_grid(cards, func(_card: CardInstance) -> void: pass)
@@ -198,6 +199,18 @@ func _show_collection() -> void:
 	_back = _focus_tabs
 	if grid.get_child_count() > 0:
 		grid.get_child(0).grab_focus()
+
+
+## Matériaux de forge possédés : icône et quantité.
+func _materials_line() -> HBoxContainer:
+	var line := HBoxContainer.new()
+	line.add_theme_constant_override("separation", 4)
+	line.add_child(UiTheme.label(tr("MENU_MATERIALS") + " :", UiTheme.GOLD, 9))
+	for file in ResourceLoader.list_directory("res://data/materials"):
+		var data: MaterialData = load("res://data/materials/" + file)
+		line.add_child(MaterialIcon.new(data))
+		line.add_child(UiTheme.label("%d  " % GameState.material_count(data.id), Color.WHITE, 9))
+	return line
 
 
 # --- Outils des pages de cartes -------------------------------------------------------
@@ -214,8 +227,9 @@ func _card_grid(cards: Array, on_pressed: Callable) -> GridContainer:
 	grid.add_theme_constant_override("h_separation", 4)
 	grid.add_theme_constant_override("v_separation", 4)
 	scroll.add_child(grid)
-	for card: CardInstance in cards:
-		var button := CardButton.new(card)
+	for same_cards in CardButton.group(cards):
+		var card: CardInstance = same_cards[0]
+		var button := CardButton.new(card, 0, same_cards.size())
 		button.view.dimmed = GameState.owner_of(card) != null
 		button.pressed.connect(on_pressed.bind(card))
 		button.focused.connect(_describe_card)

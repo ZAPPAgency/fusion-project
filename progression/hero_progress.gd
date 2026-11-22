@@ -1,7 +1,7 @@
 class_name HeroProgress
 extends RefCounted
-## Progression d'un héros pendant la partie : niveau, XP, PV actuels, cartes équipées.
-## Les stats finales = stats de base + croissance par niveau + bonus des cartes.
+## Progression d'un héros pendant la partie : niveau, XP, PV actuels, stade d'évolution, cartes.
+## Les stats finales = stats de base + croissance par niveau + bonus du stade + bonus des cartes.
 
 const MAX_LEVEL := 10
 ## Niveau nécessaire pour chaque emplacement de carte : 2 au départ, puis aux niveaux 3, 6 et 9.
@@ -11,6 +11,7 @@ var data: CombatantData
 var level := 1
 var xp := 0  ## XP accumulée dans le niveau actuel
 var hp := 0
+var stage := 0  ## Stade d'évolution (indice dans data.stages ; 0 = forme de départ)
 ## Carte équipée dans chaque emplacement (null = vide). Les cartes viennent de GameState.cards.
 var slots: Array[CardInstance] = []
 
@@ -29,23 +30,28 @@ static func xp_to_next(from_level: int) -> int:
 # --- Stats ---------------------------------------------------------------------
 
 func max_hp() -> int:
-	return data.max_hp + _growth(data.hp_growth) + _card_bonus("max_hp")
+	return data.max_hp + _growth(data.hp_growth) + _stage_bonus("max_hp") + _card_bonus("max_hp")
 
 
 func attack() -> int:
-	return data.attack + _growth(data.attack_growth) + _card_bonus("attack")
+	return data.attack + _growth(data.attack_growth) + _stage_bonus("attack") + _card_bonus("attack")
 
 
 func defense() -> int:
-	return data.defense + _growth(data.defense_growth) + _card_bonus("defense")
+	return data.defense + _growth(data.defense_growth) + _stage_bonus("defense") + _card_bonus("defense")
 
 
 func speed() -> int:
-	return data.speed + _growth(data.speed_growth) + _card_bonus("speed")
+	return data.speed + _growth(data.speed_growth) + _stage_bonus("speed") + _card_bonus("speed")
 
 
 func _growth(per_level: float) -> int:
 	return floori(per_level * (level - 1))
+
+
+func _stage_bonus(stat: String) -> int:
+	var current := stage_data()
+	return current.get(stat) if current else 0
 
 
 func _card_bonus(stat: String) -> int:
@@ -73,12 +79,15 @@ func add_xp(amount: int) -> Array[int]:
 	return reached
 
 
-## Compétences connues au niveau actuel, plus celles des cartes équipées.
+## Compétences connues au niveau actuel, plus celles des stades atteints et des cartes équipées.
 func skills() -> Array[SkillData]:
 	var known: Array[SkillData] = []
 	for skill in data.skills:
 		if skill.unlock_level <= level:
 			known.append(skill)
+	for i in range(1, stage + 1):
+		if data.stages[i].skill:
+			known.append(data.stages[i].skill)
 	for card in equipped_cards():
 		if card.data.skill and card.data.skill not in known:
 			known.append(card.data.skill)
@@ -92,6 +101,34 @@ func skills_learned_at(at_level: int) -> Array[SkillData]:
 		if skill.unlock_level == at_level:
 			learned.append(skill)
 	return learned
+
+
+# --- Évolution -----------------------------------------------------------------------
+
+## Stade actuel (null si le héros n'a pas de stades).
+func stage_data() -> HeroStage:
+	return data.stages[stage] if stage < data.stages.size() else null
+
+
+## Stade suivant (null si le héros est déjà au maximum).
+func next_stage_data() -> HeroStage:
+	return data.stages[stage + 1] if stage + 1 < data.stages.size() else null
+
+
+## Nom du héros avec son titre, ex. « Aldric, Paladin de cendre ».
+func full_title() -> String:
+	var current := stage_data()
+	if current == null or current.title == "":
+		return tr(data.display_name)
+	return "%s, %s" % [tr(data.display_name), tr(current.title)]
+
+
+## Passe au stade suivant (sans vérifier les conditions : voir Forge.evolve_hero).
+## Les PV actuels montent du gain de PV max.
+func evolve() -> void:
+	var old_max := max_hp()
+	stage += 1
+	hp += max_hp() - old_max
 
 
 # --- Cartes ----------------------------------------------------------------------
@@ -155,13 +192,14 @@ func to_dict() -> Dictionary:
 	var slot_uids := []
 	for card in slots:
 		slot_uids.append(card.uid if card else -1)
-	return {"level": level, "xp": xp, "hp": hp, "slots": slot_uids}
+	return {"level": level, "xp": xp, "hp": hp, "stage": stage, "slots": slot_uids}
 
 
 ## `cards_by_uid` : toutes les cartes du joueur (uid -> CardInstance), pour retrouver celles équipées.
 func load_dict(saved: Dictionary, cards_by_uid := {}) -> void:
 	level = int(saved.get("level", 1))
 	xp = int(saved.get("xp", 0))
+	stage = clampi(int(saved.get("stage", 0)), 0, maxi(data.stages.size() - 1, 0))
 	if saved.has("slots"):  # les anciennes sauvegardes n'en ont pas : on garde les cartes actuelles
 		slots.fill(null)
 		var slot_uids: Array = saved.slots

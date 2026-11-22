@@ -7,6 +7,10 @@
 [ext_resource type="Resource" path="res://data/skills/cri_ralliement.tres" id="5_tnm4i"]
 [ext_resource type="SpriteFrames" path="res://assets/sprites/aldric/sprite_frames.tres" id="6_wn0po"]
 [ext_resource type="Resource" path="res://data/skills/brise_garde.tres" id="6_wryfj"]
+[ext_resource type="Script" path="res://data/hero_stage.gd" id="stage_script"]
+[ext_resource type="Resource" path="res://data/stages/aldric_1.tres" id="stage_1"]
+[ext_resource type="Resource" path="res://data/stages/aldric_2.tres" id="stage_2"]
+[ext_resource type="Resource" path="res://data/stages/aldric_3.tres" id="stage_3"]
 
 [resource]
 script = ExtResource("2_wn0po")
@@ -23,3 +27,4 @@ defense_growth = 2.0
 speed_growth = 0.4
 basic_attack = ExtResource("1_c63m1")
 skills = Array[ExtResource("3_wryfj")]([ExtResource("4_f5dvb"), ExtResource("5_tnm4i"), ExtResource("6_wryfj")])
+stages = Array[ExtResource("stage_script")]([ExtResource("stage_1"), ExtResource("stage_2"), ExtResource("stage_3")])

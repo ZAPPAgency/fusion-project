@@ -14,3 +14,5 @@ defense_per_rank = 0.5
 passive = 1
 passive_value = 1.0
 evolves_into = ExtResource("2")
+evolution_material = &"eclat_cloche"
+evolution_material_count = 3

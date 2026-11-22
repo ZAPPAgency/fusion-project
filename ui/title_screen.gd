@@ -28,6 +28,8 @@ func _ready() -> void:
 	_menu.theme = UiTheme.get_theme()
 	_menu.add_child(UiTheme.button(tr("TITLE_CONTINUE"), _continue, SaveSystem.has_save()))
 	_menu.add_child(UiTheme.button(tr("TITLE_NEW_GAME"), _new_game))
+	# Pour tester la forge : toutes les cartes, matériaux et or (sauvegarde à part).
+	_menu.add_child(UiTheme.button(tr("TITLE_TEST_GAME"), _new_test_game))
 	if not OS.has_feature("web"):  # dans un navigateur, on ferme simplement l'onglet
 		_menu.add_child(UiTheme.button(tr("TITLE_QUIT"), get_tree().quit))
 	for button: Button in _menu.get_children():
@@ -38,6 +40,11 @@ func _ready() -> void:
 func _continue() -> void:
 	if SaveSystem.load_game():
 		SceneRouter.transition_to(GameState.current_map)
+
+
+func _new_test_game() -> void:
+	GameState.new_test_game()
+	SceneRouter.transition_to(GameState.START_MAP)
 
 
 func _new_game() -> void:

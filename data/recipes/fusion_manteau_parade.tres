@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="FusionRecipe" format=3]
+
+[ext_resource type="Script" path="res://data/fusion_recipe.gd" id="1"]
+[ext_resource type="Resource" path="res://data/cards/garde_fer.tres" id="2"]
+[ext_resource type="Resource" path="res://data/cards/cape_voyage.tres" id="3"]
+[ext_resource type="Resource" path="res://data/cards/manteau_parade.tres" id="4"]
+
+[resource]
+script = ExtResource("1")
+card_a = ExtResource("2")
+card_b = ExtResource("3")
+materials = {
+&"minerai_fer": 2
+}
+gold = 80
+result = ExtResource("4")

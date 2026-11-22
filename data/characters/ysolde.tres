@@ -7,6 +7,10 @@
 [ext_resource type="Resource" path="res://data/skills/vague_flammes.tres" id="5_btcr8"]
 [ext_resource type="SpriteFrames" path="res://assets/sprites/ysolde/sprite_frames.tres" id="6_ew8jd"]
 [ext_resource type="Resource" path="res://data/skills/meteore_braise.tres" id="6_g3e0o"]
+[ext_resource type="Script" path="res://data/hero_stage.gd" id="stage_script"]
+[ext_resource type="Resource" path="res://data/stages/ysolde_1.tres" id="stage_1"]
+[ext_resource type="Resource" path="res://data/stages/ysolde_2.tres" id="stage_2"]
+[ext_resource type="Resource" path="res://data/stages/ysolde_3.tres" id="stage_3"]
 
 [resource]
 script = ExtResource("2_ew8jd")
@@ -22,3 +26,4 @@ hp_growth = 7.0
 attack_growth = 3.0
 basic_attack = ExtResource("1_beow6")
 skills = Array[ExtResource("3_g3e0o")]([ExtResource("4_nnrg1"), ExtResource("5_btcr8"), ExtResource("6_g3e0o")])
+stages = Array[ExtResource("stage_script")]([ExtResource("stage_1"), ExtResource("stage_2"), ExtResource("stage_3")])

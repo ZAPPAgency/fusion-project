@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Script" path="res://data/skill_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"glas_champion"
+display_name = "SKILL_GLAS_CHAMPION"
+target = 1
+power = 1.8
+ap_cost = 7
+impact_times = PackedFloat32Array(0.5, 0.95, 1.4, 1.85)
+hit_animations = Array[StringName]([&"attack1", &"attack2"])
+melee = false
+impact_fx = &"arcane"

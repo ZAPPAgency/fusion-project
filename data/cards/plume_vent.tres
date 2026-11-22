@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="CardData" format=3]
 
 [ext_resource type="Script" path="res://data/card_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/cards/plume_tempete.tres" id="2"]
 
 [resource]
 script = ExtResource("1")
@@ -9,3 +10,5 @@ display_name = "CARD_PLUME_VENT"
 price = 45
 speed = 1
 speed_per_rank = 0.5
+evolves_into = ExtResource("2")
+evolution_material = &"eclat_cloche"

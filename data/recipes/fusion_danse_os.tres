@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="FusionRecipe" format=3]
+
+[ext_resource type="Script" path="res://data/fusion_recipe.gd" id="1"]
+[ext_resource type="Resource" path="res://data/cards/croc_squelette.tres" id="2"]
+[ext_resource type="Resource" path="res://data/cards/plume_vent.tres" id="3"]
+[ext_resource type="Resource" path="res://data/cards/danse_os.tres" id="4"]
+
+[resource]
+script = ExtResource("1")
+card_a = ExtResource("2")
+card_b = ExtResource("3")
+gold = 40
+result = ExtResource("4")

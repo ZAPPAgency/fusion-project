@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="MaterialData" format=3]
+
+[ext_resource type="Script" path="res://data/material_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"larme_lune"
+display_name = "MAT_LARME_LUNE"
+rarity = 3
+shape = 3
+color = Color(0.6, 0.85, 1.0, 1)

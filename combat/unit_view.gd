@@ -54,6 +54,8 @@ func setup(battle_unit: BattleUnit, start_position: Vector2) -> void:
 
 func _make_sprite(frames: SpriteFrames) -> void:
 	var scale_factor := unit.data.sprite_scale
+	if unit.stage:
+		scale_factor *= unit.stage.sprite_scale  # les formes évoluées sont un peu plus grandes
 	var source_facing := -1.0 if frames.get_meta("faces_left", false) else 1.0
 	_sprite = AnimatedSprite2D.new()
 	_sprite.sprite_frames = frames
@@ -70,6 +72,11 @@ func _make_sprite(frames: SpriteFrames) -> void:
 	_sprite.material = _effects
 	_body.add_child(_sprite)
 	body_size = frames.get_meta("body_size", PLACEHOLDER_SIZE) * scale_factor
+	if unit.stage:
+		HeroLook.apply_to_material(_effects, unit.stage)
+		var look := HeroLook.new(unit.stage, body_size)
+		_body.add_child(look)
+		_body.move_child(look, 0)  # derrière le sprite
 	_strike_amplitude = ANIMATED_STRIKE_AMPLITUDE
 	play_anim(&"idle")
 

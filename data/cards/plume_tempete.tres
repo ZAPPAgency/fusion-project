@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="CardData" format=3]
+
+[ext_resource type="Script" path="res://data/card_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"plume_tempete"
+display_name = "CARD_PLUME_TEMPETE"
+rarity = 1
+speed = 3
+speed_per_rank = 0.5
+timing_bonus_ms = 5.0
+timing_bonus_per_rank = 2.0

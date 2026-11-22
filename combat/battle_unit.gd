@@ -21,6 +21,7 @@ var level := 1
 var skills: Array[SkillData] = []  ## Compétences utilisables (hors attaque de base)
 var passives := {}  # CardData.Passive -> valeur totale (cartes équipées)
 var timing_bonus_ms := 0.0  ## Fenêtres de timing élargies par les cartes
+var stage: HeroStage  ## Stade d'évolution du héros (apparence) ; null pour les ennemis
 var display_name: String  ## Nom traduit, avec une lettre si plusieurs ennemis identiques
 var short_name: String  ## Initiale(s) affichée(s) dans la frise des tours
 
@@ -55,6 +56,7 @@ func apply_progress(progress: HeroProgress) -> void:
 		if progress.passive(kind) != 0.0:
 			passives[kind] = progress.passive(kind)
 	timing_bonus_ms = progress.timing_bonus_ms()
+	stage = progress.stage_data()
 	ap = mini(START_AP + passive_ap(CardData.Passive.START_AP), MAX_AP)
 
 

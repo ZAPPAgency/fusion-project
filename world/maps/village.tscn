@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://world/props/lantern.gd" id="6_l65ts"]
 [ext_resource type="Script" path="res://world/chest.gd" id="7_0jvo2"]
 [ext_resource type="Script" path="res://world/map_exit.gd" id="8_ux7t3"]
+[ext_resource type="Script" path="res://world/props/forge_furnace.gd" id="9_forge"]
 
 [node name="Village" type="Node2D" unique_id=598502654]
 script = ExtResource("1_br2fu")
@@ -587,10 +588,26 @@ position = Vector2(1007.1813, 636)
 script = ExtResource("3_8d81x")
 height = 64.104225
 
+[node name="Smith" type="StaticBody2D" parent="Objects"]
+position = Vector2(412, 512)
+script = ExtResource("4_f1eg2")
+speaker = "NPC_SMITH"
+lines = Array[String](["DLG_SMITH_1"])
+opens_forge = true
+robe_color = Color(0.42, 0.26, 0.16, 1)
+hair_color = Color(0.15, 0.12, 0.1, 1)
+
+[node name="Forge" type="StaticBody2D" parent="Objects"]
+position = Vector2(376, 500)
+script = ExtResource("9_forge")
+
 [node name="Spawns" type="Node2D" parent="." unique_id=1338734119]
 
 [node name="start" type="Marker2D" parent="Spawns" unique_id=166943783]
 position = Vector2(496, 560)
+
+[node name="forge" type="Marker2D" parent="Spawns"]
+position = Vector2(440, 544)
 
 [node name="from_forest" type="Marker2D" parent="Spawns" unique_id=556524609]
 position = Vector2(496, 80)

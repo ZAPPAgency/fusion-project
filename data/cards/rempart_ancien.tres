@@ -1,6 +1,7 @@
 [gd_resource type="Resource" script_class="CardData" format=3]
 
 [ext_resource type="Script" path="res://data/card_data.gd" id="1"]
+[ext_resource type="Resource" path="res://data/cards/egide_cloche.tres" id="2"]
 
 [resource]
 script = ExtResource("1")
@@ -11,3 +12,5 @@ defense = 6
 defense_per_rank = 1.5
 passive = 1
 passive_value = 2.0
+evolves_into = ExtResource("2")
+evolution_material = &"larme_lune"

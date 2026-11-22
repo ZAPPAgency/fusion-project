@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="HeroStage" format=3]
+
+[ext_resource type="Script" path="res://data/hero_stage.gd" id="1"]
+[ext_resource type="Resource" path="res://data/skills/colonne_feu.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+title = "STAGE_YSOLDE_2"
+max_hp = 25
+attack = 8
+defense = 3
+speed = 1
+skill = ExtResource("2")
+required_level = 4
+gold = 300
+materials = {
+&"fragment_cendre": 10,
+&"minerai_fer": 5,
+&"eclat_cloche": 3
+}
+recolor_hue_min = 0.64
+recolor_hue_max = 0.86
+recolor_hue_target = 0.0
+recolor_saturation = 1.15
+recolor_value = 1.05
+outline_color = Color(2.2, 0.8, 0.2, 0.7)
+aura_color = Color(2.6, 1.0, 0.25, 1)
+aura_level = 1
+sprite_scale = 1.05
