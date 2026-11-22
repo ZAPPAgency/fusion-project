@@ -4,7 +4,7 @@ extends CanvasLayer
 ##   await Tutorial.show_tip(&"attack")
 ## Le jeu est en pause pendant la fiche. Espace / clic : page suivante ; Échap : fermer.
 ## Les fiches vues sont gardées dans GameState.seen_tips (et donc dans la sauvegarde).
-## Rien ne s'affiche pendant les démos et les tests automatiques.
+## Rien ne s'affiche pendant les démos, les tests automatiques et la partie de test (debug).
 
 signal _next(skip: bool)
 
@@ -82,7 +82,7 @@ func is_open() -> bool:
 
 ## Affiche la fiche `id` si elle n'a pas encore été vue dans cette partie. À attendre (await).
 func show_tip(id: StringName) -> void:
-	if _disabled or _open or GameState.seen_tips.has(id) or not TIPS.has(id):
+	if not should_show(id):
 		return
 	GameState.seen_tips[id] = true
 	_open = true
@@ -102,6 +102,12 @@ func show_tip(id: StringName) -> void:
 	get_tree().paused = was_paused
 	await get_tree().process_frame  # l'appui qui ferme ne déclenche rien d'autre
 	_open = false
+
+
+## Vrai si la fiche `id` doit s'afficher maintenant (jamais dans la partie de test).
+func should_show(id: StringName) -> bool:
+	return not _disabled and not _open and not GameState.test_mode \
+		and TIPS.has(id) and not GameState.seen_tips.has(id)
 
 
 ## Remplace {confirm}, {parry}... par les touches (clavier / manette / souris).

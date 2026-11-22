@@ -123,3 +123,14 @@ func test_every_tutorial_text_is_translated() -> void:
 		for page: Dictionary in Tutorial.TIPS[id]:
 			for key in [page.title] + page.lines:
 				assert_ne(TranslationServer.translate(key), key, "texte manquant : %s" % key)
+
+
+func test_no_tutorial_in_the_test_game() -> void:
+	var was_disabled: bool = Tutorial._disabled
+	Tutorial._disabled = false  # comme dans le vrai jeu (les tests coupent les fiches)
+	GameState.new_game()
+	assert_true(Tutorial.should_show(&"battle"), "partie normale : la fiche s'affiche")
+	GameState.new_test_game()
+	for id in Tutorial.TIPS:
+		assert_false(Tutorial.should_show(id), "fiche %s dans la partie de test" % id)
+	Tutorial._disabled = was_disabled
