@@ -2,18 +2,51 @@ class_name HeroLook
 extends Node2D
 ## Apparence d'un héros selon son stade d'évolution (voir HeroStage) :
 ## - sur le sprite (fx/unit.gdshader) : nouvelles couleurs, armure teintée, contour lumineux ;
-## - ce nœud, placé derrière le sprite : halo au sol, étincelles qui montent,
-##   et au dernier stade des ailes de lumière qui battent et une auréole.
-## L'origine du nœud est aux pieds du héros.
+## - stade 2 (aura_level 1) : halo doux au sol et étincelles ;
+## - forme ultime (aura_level 2) : aura en pixel art liée à l'élément du héros, comme les auras
+##   des jeux en ligne : ailes, motif au sol, particules et auréole.
+##     lumière (Aldric) : ailes d'ange, cercle de runes, rayons qui montent, auréole dorée ;
+##     feu (Ysolde) : ailes de phénix, anneau de flammes, braises, couronne de flammes ;
+##     foudre (Fenn) : ailes d'énergie, éclairs qui crépitent, anneau électrique.
+## Ce nœud se place derrière le sprite ; `front` (devant le sprite) dessine ce qui passe
+## devant le corps. Utiliser HeroLook.attach(). L'origine est aux pieds du héros.
+## Tout est dessiné sur des pixels entiers pour rester en pixel art.
+
+const LIGHT_GOLD := Color(1.0, 0.86, 0.45)
+const LIGHT_WHITE := Color(1.25, 1.2, 1.0)  # > 1 : brille un peu avec le glow
+const FIRE_RAMP := [Color(1.5, 1.35, 0.8), Color(1.25, 0.72, 0.2), Color(0.95, 0.34, 0.08), Color(0.55, 0.1, 0.03, 0.75)]
+const BOLT_CORE := Color(1.4, 1.6, 1.9)
+const BOLT_GLOW := Color(0.35, 0.75, 1.0, 0.45)
+const BOLT_DIM := Color(0.15, 0.4, 0.9, 0.45)
 
 var stage: HeroStage
 var body_size: Vector2
+var front: Node2D  ## Calque devant le sprite
 
 var _time := 0.0
 var _glow: Sprite2D
-## Couleur de l'aura ramenée sous 1 : les grandes surfaces (halo, ailes) ne doivent pas
-## déclencher le glow du décor, sinon le héros disparaît dans une boule de lumière.
-var _soft_color: Color
+var _soft_color: Color  ## Couleur de l'aura ramenée sous 1 (grandes surfaces sans éblouir)
+var _wings: Array[Sprite2D] = []
+var _wing_frames: Array[Texture2D] = []
+var _motes: Array[Dictionary] = []  # particules : position, vitesse, âge, durée, couleur
+var _beams: Array[Dictionary] = []  # rayons de lumière qui montent
+var _bolts: Array[PackedVector2Array] = []  # éclairs affichés en ce moment
+var _bolt_timer := 0.0
+var _spawn_timer := 0.0
+var _noise := FastNoiseLite.new()
+var _rng := RandomNumberGenerator.new()
+
+
+## Ajoute l'apparence du stade autour de `sprite` (même parent) : aura derrière, calque devant.
+static func attach(sprite: Node2D, hero_stage: HeroStage, hero_body_size: Vector2) -> HeroLook:
+	var look := HeroLook.new(hero_stage, hero_body_size)
+	var parent := sprite.get_parent()
+	parent.add_child(look)
+	parent.move_child(look, sprite.get_index())  # derrière le sprite
+	parent.add_child(look.front)
+	parent.move_child(look.front, sprite.get_index() + 1)  # devant le sprite
+	look.tree_exiting.connect(look.front.queue_free)
+	return look
 
 
 ## Règle les couleurs et le contour du sprite (stage null = apparence d'origine).
@@ -42,83 +75,316 @@ static func make_material(hero_stage: HeroStage) -> ShaderMaterial:
 func _init(hero_stage: HeroStage, hero_body_size: Vector2) -> void:
 	stage = hero_stage
 	body_size = hero_body_size
+	front = FrontLayer.new(self)
 	if stage:
 		var brightest := maxf(stage.aura_color.r, maxf(stage.aura_color.g, stage.aura_color.b))
 		_soft_color = stage.aura_color / maxf(brightest, 1.0)
-	var additive := CanvasItemMaterial.new()
-	additive.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
-	additive.light_mode = CanvasItemMaterial.LIGHT_MODE_UNSHADED
-	material = additive
+	_noise.frequency = 0.08
+	_rng.randomize()
 
 
 func _ready() -> void:
 	if stage == null or stage.aura_level == 0:
 		set_process(false)
 		return
-	# Halo doux derrière le corps.
+	material = FxLibrary.unshaded_material()
+	front.material = FxLibrary.unshaded_material()
+	# Halo doux derrière le corps (additif).
+	var additive := CanvasItemMaterial.new()
+	additive.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	additive.light_mode = CanvasItemMaterial.LIGHT_MODE_UNSHADED
 	_glow = Sprite2D.new()
 	_glow.texture = FxLibrary.light_texture()
+	_glow.material = additive
 	_glow.position = Vector2(0, -body_size.y * 0.5)
 	_glow.scale = Vector2.ONE * body_size.y * 1.3 / 128.0
-	_glow.modulate = Color(_soft_color, 0.25)
-	_glow.use_parent_material = true
+	_glow.modulate = Color(_soft_color, 0.2)
 	add_child(_glow)
-	add_child(_make_sparks())
+	if stage.aura_level == 1:
+		add_child(_make_sparks())
+	else:
+		_make_wings()
 
 
 func _process(delta: float) -> void:
 	_time += delta
-	_glow.modulate.a = 0.2 + 0.06 * sin(_time * 2.5)
+	_glow.modulate.a = 0.18 + 0.05 * sin(_time * 2.5)
+	if stage.aura_level >= 2:
+		_update_wings()
+		_update_particles(delta)
 	queue_redraw()
+	front.queue_redraw()
 
+
+# --- Ailes ------------------------------------------------------------------------------
+
+func _make_wings() -> void:
+	_wing_frames = PixelWings.frames(stage.aura_element)
+	var wing_scale := clampf(body_size.y / 50.0, 1.0, 1.2)  # proche de 1 : pixels nets
+	for side in [1.0, -1.0]:
+		var wing := Sprite2D.new()
+		wing.centered = false
+		wing.offset = -Vector2(PixelWings.ROOT)
+		wing.position = Vector2(side * 2.0, -roundf(body_size.y * 0.62))
+		wing.scale = Vector2(side, 1.0) * wing_scale  # l'aile gauche est l'aile droite retournée
+		wing.modulate = Color(1.12, 1.12, 1.12)  # les pixels les plus clairs brillent légèrement
+		wing.use_parent_material = true  # pas assombries par la nuit
+		add_child(wing)
+		_wings.append(wing)
+
+
+func _update_wings() -> void:
+	var frame := int(_time * 7.0) % PixelWings.FRAMES
+	for wing in _wings:
+		wing.texture = _wing_frames[frame]
+
+
+# --- Particules (pixels) ---------------------------------------------------------------
+
+func _update_particles(delta: float) -> void:
+	_spawn_timer -= delta
+	if _spawn_timer <= 0.0:
+		_spawn_timer = 0.06
+		_spawn_particles()
+	for mote in _motes:
+		mote.age += delta
+		mote.pos += mote.vel * delta
+	_motes = _motes.filter(func(mote: Dictionary) -> bool: return mote.age < mote.life)
+	for beam in _beams:
+		beam.age += delta
+	_beams = _beams.filter(func(beam: Dictionary) -> bool: return beam.age < beam.life)
+	if stage.aura_element == HeroStage.AuraElement.LIGHTNING:
+		_bolt_timer -= delta
+		if _bolt_timer <= 0.0:
+			_bolt_timer = _rng.randf_range(0.06, 0.16)
+			_new_bolts()
+
+
+func _spawn_particles() -> void:
+	var half_width := body_size.x * 0.6
+	match stage.aura_element:
+		HeroStage.AuraElement.LIGHT:
+			_add_mote(Vector2(_rng.randf_range(-half_width, half_width), _rng.randf_range(-4, 0)),
+				Vector2(0, -_rng.randf_range(10, 18)), 1.6, LIGHT_WHITE if _rng.randf() < 0.4 else LIGHT_GOLD)
+			if _rng.randf() < 0.25:
+				_beams.append({"x": roundf(_rng.randf_range(-half_width, half_width)), "age": 0.0,
+					"life": _rng.randf_range(0.8, 1.3), "height": _rng.randf_range(body_size.y * 0.6, body_size.y * 1.1)})
+		HeroStage.AuraElement.FIRE:
+			var angle := _rng.randf() * TAU
+			_add_mote(_ground_point(angle, 1.0), Vector2(_rng.randf_range(-5, 5), -_rng.randf_range(14, 26)), 1.2, FIRE_RAMP[_rng.randi_range(0, 1)])
+		HeroStage.AuraElement.LIGHTNING:
+			if _rng.randf() < 0.5:
+				_add_mote(Vector2(_rng.randf_range(-half_width, half_width), -_rng.randf_range(0, body_size.y)),
+					Vector2.from_angle(_rng.randf() * TAU) * _rng.randf_range(20, 40), 0.25, BOLT_CORE)
+
+
+func _add_mote(pos: Vector2, vel: Vector2, life: float, color: Color) -> void:
+	_motes.append({"pos": pos, "vel": vel, "age": 0.0, "life": life, "color": color, "big": _rng.randf() < 0.2})
+
+
+## 1 à 3 éclairs entre deux points d'une ellipse autour du corps, en zigzag.
+func _new_bolts() -> void:
+	_bolts.clear()
+	if _rng.randf() < 0.45:  # des moments sans éclair : le crépitement reste lisible
+		return
+	var center := Vector2(0, -body_size.y * 0.5)
+	var radius := Vector2(body_size.x * 0.75, body_size.y * 0.55)
+	for i in _rng.randi_range(1, 2):
+		var start_angle := _rng.randf() * TAU
+		var end_angle := start_angle + _rng.randf_range(0.6, 1.6)
+		var start := center + Vector2(cos(start_angle), sin(start_angle)) * radius
+		var end := center + Vector2(cos(end_angle), sin(end_angle)) * radius
+		var points := PackedVector2Array([start])
+		var normal := (end - start).orthogonal().normalized()
+		for step in range(1, 6):
+			points.append(start.lerp(end, step / 6.0) + normal * _rng.randf_range(-4.0, 4.0))
+		points.append(end)
+		_bolts.append(points)
+
+
+# --- Dessin ------------------------------------------------------------------------------
 
 func _draw() -> void:
 	if stage == null or stage.aura_level == 0:
 		return
-	var color := _soft_color
-	# Halo au sol.
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.3))
-	draw_circle(Vector2.ZERO, body_size.x * 0.9, Color(color, 0.14 + 0.04 * sin(_time * 3.0)))
-	draw_set_transform(Vector2.ZERO)
-	if stage.aura_level >= 2:
-		_draw_wings(color)
-		_draw_halo(color)
+	if stage.aura_level == 1:
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.3))
+		draw_circle(Vector2.ZERO, body_size.x * 0.9, Color(_soft_color, 0.14 + 0.04 * sin(_time * 3.0)))
+		draw_set_transform(Vector2.ZERO)
+		return
+	match stage.aura_element:
+		HeroStage.AuraElement.LIGHT:
+			_draw_rune_ring(self, true)
+			_draw_beams(self)
+		HeroStage.AuraElement.FIRE:
+			_draw_flame_ring(self, true)
+		HeroStage.AuraElement.LIGHTNING:
+			_draw_electric_ring(self, true)
 
 
-## Deux ailes de 6 plumes de lumière, qui battent doucement.
-func _draw_wings(color: Color) -> void:
-	var size := body_size.y / 40.0
-	var root := Vector2(0, -body_size.y * 0.62)
-	var flap := sin(_time * 2.2) * 0.14
-	for side in [-1.0, 1.0]:
-		for i in 6:
-			var angle := deg_to_rad(40.0 - i * 15.0) + flap * (1.0 - i * 0.12)
-			var direction := Vector2(side * cos(angle), -sin(angle))
-			var length := (30.0 - absf(i - 1.5) * 3.5) * size
-			var across := Vector2(-direction.y, direction.x) * 3.5 * size
-			var middle := root + direction * length * 0.55
-			var feather := PackedVector2Array([root + direction * 3.0 - across * 0.3, middle + across,
-				root + direction * length, middle - across])
-			draw_colored_polygon(feather, Color(color, 0.14 + 0.025 * i))
-			var core := PackedVector2Array([root + direction * 4.0, middle + across * 0.3,
-				root + direction * length * 0.9, middle - across * 0.3])
-			draw_colored_polygon(core, Color(color, 0.22))
+## Ce qui passe devant le corps (appelé par le calque `front`).
+func draw_front(canvas: CanvasItem) -> void:
+	if stage == null or stage.aura_level < 2:
+		return
+	match stage.aura_element:
+		HeroStage.AuraElement.LIGHT:
+			_draw_rune_ring(canvas, false)
+			_draw_motes(canvas)
+			_draw_halo(canvas)
+		HeroStage.AuraElement.FIRE:
+			_draw_flame_ring(canvas, false)
+			_draw_motes(canvas)
+			_draw_flame_crown(canvas)
+		HeroStage.AuraElement.LIGHTNING:
+			_draw_electric_ring(canvas, false)
+			_draw_bolts(canvas)
+			_draw_motes(canvas)
+			_draw_electric_halo(canvas)
 
 
-## Anneau de lumière au-dessus de la tête, qui flotte.
-func _draw_halo(color: Color) -> void:
-	var center := Vector2(0, -body_size.y - 7.0 + sin(_time * 2.0) * 1.5)
-	draw_set_transform(center, 0.0, Vector2(1.0, 0.32))
-	draw_arc(Vector2.ZERO, 9.0, 0.0, TAU, 28, Color(stage.aura_color, 0.9), 2.0)
-	draw_arc(Vector2.ZERO, 9.0, 0.0, TAU, 28, Color(color, 0.25), 5.0)
-	draw_set_transform(Vector2.ZERO)
+static func _pixel(canvas: CanvasItem, at: Vector2, color: Color, size := 1.0) -> void:
+	canvas.draw_rect(Rect2(at.floor(), Vector2(size, size)), color)
 
 
-## Étincelles de la couleur de l'aura qui montent autour du corps.
+func _ground_radius() -> Vector2:
+	var radius := roundf(body_size.x * 0.85 + 4.0)
+	return Vector2(radius, roundf(radius * 0.32))
+
+
+## Point de l'ellipse au sol ; angle entre 0 et PI = devant (bas de l'ellipse).
+func _ground_point(angle: float, scale_factor: float) -> Vector2:
+	var radius := _ground_radius() * scale_factor
+	return Vector2(cos(angle) * radius.x, sin(angle) * radius.y)
+
+
+## Lumière : deux cercles de runes en pointillés qui tournent en sens inverse.
+func _draw_rune_ring(canvas: CanvasItem, back: bool) -> void:
+	for ring in 2:
+		var scale_factor := 1.0 if ring == 0 else 0.62
+		var direction := 1.0 if ring == 0 else -1.4
+		var count := 48 if ring == 0 else 30
+		for i in count:
+			var angle := TAU * i / count + _time * 0.6 * direction
+			if (sin(angle) < 0.0) != back:
+				continue
+			# Motif de runes : traits de longueurs différentes, quelques trous.
+			var pattern := (i + ring * 3) % 6
+			if pattern == 5:
+				continue
+			var color := LIGHT_WHITE if pattern == 0 else Color(LIGHT_GOLD, 0.85)
+			_pixel(canvas, _ground_point(angle, scale_factor), color)
+
+
+## Lumière : fins rayons verticaux qui montent du sol et s'effacent vers le haut.
+func _draw_beams(canvas: CanvasItem) -> void:
+	for beam in _beams:
+		var progress: float = beam.age / beam.life
+		var fade := sin(progress * PI)
+		var height: float = beam.height * minf(1.0, progress * 2.0)
+		for y in int(height):
+			var alpha := fade * (1.0 - y / height) * 0.8
+			_pixel(canvas, Vector2(beam.x, -y), Color(LIGHT_GOLD, alpha))
+			if y % 2 == 0:
+				_pixel(canvas, Vector2(beam.x, -y), Color(LIGHT_WHITE, alpha * 0.5))
+
+
+## Feu : flammes en pixels tout autour des pieds, hauteur animée par du bruit.
+func _draw_flame_ring(canvas: CanvasItem, back: bool) -> void:
+	var radius := _ground_radius()
+	var columns := int(radius.x * 2.4)
+	for i in columns:
+		var angle := TAU * i / columns
+		if (sin(angle) < 0.0) != back:
+			continue
+		var base := _ground_point(angle, 1.0).floor()
+		var flicker := (_noise.get_noise_2d(i * 9.0, _time * 60.0) + 1.0) * 0.5
+		var height := int(2.0 + flicker * (9.0 if back else 6.0))
+		for y in height:
+			var ramp_index := mini(int(float(y) / height * FIRE_RAMP.size()), FIRE_RAMP.size() - 1)
+			_pixel(canvas, base + Vector2(0, -y), FIRE_RAMP[ramp_index])
+
+
+## Foudre : anneau en pointillés dont des pixels s'allument au hasard.
+func _draw_electric_ring(canvas: CanvasItem, back: bool) -> void:
+	var count := 44
+	var tick := int(_time * 18.0)
+	for i in count:
+		var angle := TAU * i / count
+		if (sin(angle) < 0.0) != back:
+			continue
+		var lit := hash(i * 31 + tick) % 5 == 0
+		_pixel(canvas, _ground_point(angle, 1.0), BOLT_CORE if lit else BOLT_DIM)
+
+
+func _draw_bolts(canvas: CanvasItem) -> void:
+	for bolt in _bolts:
+		for i in bolt.size() - 1:
+			_pixel_line(canvas, bolt[i], bolt[i + 1])
+
+
+## Ligne d'éclair pixel par pixel : cœur blanc, halo bleu de part et d'autre.
+func _pixel_line(canvas: CanvasItem, from: Vector2, to: Vector2) -> void:
+	var steps := int(maxf(absf(to.x - from.x), absf(to.y - from.y))) + 1
+	for step in steps:
+		var point := from.lerp(to, float(step) / steps).floor()
+		_pixel(canvas, point + Vector2(0, -1), BOLT_GLOW)
+		_pixel(canvas, point + Vector2(0, 1), BOLT_GLOW)
+		_pixel(canvas, point, BOLT_CORE)
+
+
+func _draw_motes(canvas: CanvasItem) -> void:
+	for mote in _motes:
+		var fade: float = 1.0 - mote.age / mote.life
+		var wobble := Vector2(sin(mote.age * 6.0 + mote.pos.x) * 1.5, 0)
+		var color: Color = mote.color
+		color.a *= fade
+		_pixel(canvas, mote.pos + wobble, color)
+		if mote.big and fade > 0.5:  # petite étoile en croix
+			for step in [Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
+				_pixel(canvas, mote.pos + wobble + step, Color(color, color.a * 0.5))
+
+
+func _head_center() -> Vector2:
+	return Vector2(0, -roundf(body_size.y + 6.0 + sin(_time * 2.0) * 1.5))
+
+
+## Lumière : auréole en pixels, avec un éclat qui en fait le tour.
+func _draw_halo(canvas: CanvasItem) -> void:
+	var center := _head_center()
+	var sparkle := int(_time * 10.0) % 28
+	for i in 28:
+		var angle := TAU * i / 28
+		var point := center + Vector2(round(cos(angle) * 7.0), round(sin(angle) * 2.0))
+		_pixel(canvas, point, LIGHT_WHITE if i == sparkle else LIGHT_GOLD)
+
+
+## Feu : couronne de petites flammes qui dansent au-dessus de la tête.
+func _draw_flame_crown(canvas: CanvasItem) -> void:
+	var center := _head_center()
+	for i in 7:
+		var angle := TAU * i / 7 + _time * 0.8
+		var base := center + Vector2(round(cos(angle) * 7.0), round(sin(angle) * 2.0))
+		var height := 2 + int((_noise.get_noise_2d(i * 13.0, _time * 70.0) + 1.0) * 2.0)
+		for y in height:
+			_pixel(canvas, base + Vector2(0, -y), FIRE_RAMP[mini(y, FIRE_RAMP.size() - 1)])
+
+
+## Foudre : anneau électrique qui tressaute au-dessus de la tête.
+func _draw_electric_halo(canvas: CanvasItem) -> void:
+	var center := _head_center()
+	var tick := int(_time * 20.0)
+	for i in 28:
+		var angle := TAU * i / 28
+		var jitter := float(hash(i + tick * 7) % 3 - 1)
+		var point := center + Vector2(round(cos(angle) * 7.0), round(sin(angle) * 2.0) + jitter)
+		_pixel(canvas, point, BOLT_CORE if hash(i * 5 + tick) % 4 == 0 else BOLT_GLOW)
+
+
+## Stade 2 : étincelles de la couleur de l'aura qui montent autour du corps.
 func _make_sparks() -> CPUParticles2D:
 	var sparks := CPUParticles2D.new()
-	sparks.use_parent_material = true
-	sparks.amount = 10 * stage.aura_level
+	sparks.material = FxLibrary.unshaded_material()
+	sparks.amount = 10
 	sparks.lifetime = 1.4
 	sparks.position = Vector2(0, -body_size.y * 0.4)
 	sparks.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
@@ -132,7 +398,20 @@ func _make_sparks() -> CPUParticles2D:
 	sparks.scale_amount_max = 2.0
 	var ramp := Gradient.new()
 	var spark := _soft_color * 1.4  # à peine au-dessus de 1 : elles brillent sans éblouir
-	ramp.colors = PackedColorArray([Color(spark, 0.0), Color(spark, 1.0), Color(spark, 0.0)])
 	ramp.offsets = PackedFloat32Array([0.0, 0.2, 1.0])
+	ramp.colors = PackedColorArray([Color(spark, 0.0), Color(spark, 1.0), Color(spark, 0.0)])
 	sparks.color_ramp = ramp
 	return sparks
+
+
+## Calque devant le sprite : délègue le dessin à son HeroLook.
+class FrontLayer:
+	extends Node2D
+
+	var look: HeroLook
+
+	func _init(owner_look: HeroLook) -> void:
+		look = owner_look
+
+	func _draw() -> void:
+		look.draw_front(self)

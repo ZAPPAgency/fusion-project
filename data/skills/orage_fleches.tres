@@ -5,8 +5,8 @@
 
 [resource]
 script = ExtResource("1")
-id = &"pluie_etoiles"
-display_name = "SKILL_PLUIE_ETOILES"
+id = &"orage_fleches"
+display_name = "SKILL_ORAGE_FLECHES"
 target = 1
 power = 1.7
 ap_cost = 7

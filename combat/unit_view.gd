@@ -74,9 +74,7 @@ func _make_sprite(frames: SpriteFrames) -> void:
 	body_size = frames.get_meta("body_size", PLACEHOLDER_SIZE) * scale_factor
 	if unit.stage:
 		HeroLook.apply_to_material(_effects, unit.stage)
-		var look := HeroLook.new(unit.stage, body_size)
-		_body.add_child(look)
-		_body.move_child(look, 0)  # derrière le sprite
+		HeroLook.attach(_sprite, unit.stage, body_size)
 	_strike_amplitude = ANIMATED_STRIKE_AMPLITUDE
 	play_anim(&"idle")
 

@@ -177,13 +177,13 @@ STAGE_YSOLDE_2,Pyromancienne,Pyromancer
 STAGE_YSOLDE_3,Phénix de Valbrune,Phoenix of Valbrune
 STAGE_FENN_1,Rôdeuse,Ranger
 STAGE_FENN_2,Traqueuse du vent,Windstalker
-STAGE_FENN_3,Sentinelle astrale,Astral Sentinel
+STAGE_FENN_3,Sentinelle de l'orage,Storm Sentinel
 SKILL_JUGEMENT_CENDRE,Jugement de cendre,Ash Judgment
 SKILL_GLAS_CHAMPION,Glas du champion,Champion's Knell
 SKILL_COLONNE_FEU,Colonne de feu,Fire Pillar
 SKILL_RENAISSANCE_PHENIX,Renaissance du phénix,Phoenix Rebirth
 SKILL_FLECHE_VENT,Flèche du vent,Wind Arrow
-SKILL_PLUIE_ETOILES,Pluie d'étoiles,Starfall
+SKILL_ORAGE_FLECHES,Orage de flèches,Arrow Storm
 TITLE_TEST_GAME,Partie de test,Test Game
 NPC_SMITH,Gorm le forgeron,Gorm the Smith
 DLG_SMITH_1,Ma forge est la plus chaude de Valbrune. Montre-moi tes cartes.,My forge is the hottest in Valbrune. Show me your cards.

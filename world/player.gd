@@ -48,9 +48,7 @@ func refresh_look() -> void:
 	if _look:
 		_look.queue_free()
 	var body_size: Vector2 = leader.data.sprite_frames.get_meta("body_size", Vector2(20, 40)) * _sprite.scale
-	_look = HeroLook.new(stage, body_size)
-	add_child(_look)
-	move_child(_look, _sprite.get_index())  # derrière le sprite
+	_look = HeroLook.attach(_sprite, stage, body_size)
 
 
 ## Empêche la caméra de montrer l'extérieur de la carte.

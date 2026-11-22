@@ -3,6 +3,9 @@ extends Resource
 ## Un stade d'évolution d'un héros (1 = forme de départ, puis 2 et 3 après la forge).
 ## Les bonus sont comptés depuis la forme de départ (pas cumulés d'un stade à l'autre).
 
+## Élément de l'aura du dernier stade : lumière, feu ou foudre (ailes, sol, particules).
+enum AuraElement { NONE, LIGHT, FIRE, LIGHTNING }
+
 @export var title := ""  ## Clé de traduction, ex. "STAGE_ALDRIC_2" (« Paladin de cendre »)
 
 @export_group("Bonus")
@@ -31,4 +34,5 @@ extends Resource
 @export var outline_color := Color(0, 0, 0, 0)
 @export var aura_color := Color.WHITE
 @export var aura_level := 0
+@export var aura_element := AuraElement.NONE
 @export var sprite_scale := 1.0

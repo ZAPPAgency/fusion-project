@@ -31,9 +31,7 @@ func refresh(stage_index := -1) -> void:
 	if look:
 		look.queue_free()
 	var body: Vector2 = progress.data.sprite_frames.get_meta("body_size", Vector2(20, 40)) * sprite.scale
-	look = HeroLook.new(stage, body)
-	add_child(look)
-	move_child(look, 0)
+	look = HeroLook.attach(sprite, stage, body)
 
 
 ## Fait virer le sprite au blanc (0 à 1), pour la cinématique d'évolution.

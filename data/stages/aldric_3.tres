@@ -22,4 +22,5 @@ metal_amount = 0.75
 outline_color = Color(2.5, 2.0, 1.0, 1.0)
 aura_color = Color(2.6, 2.2, 1.2, 1)
 aura_level = 2
+aura_element = 1
 sprite_scale = 1.12
