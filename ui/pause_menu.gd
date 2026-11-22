@@ -2,6 +2,8 @@ class_name PauseMenu
 extends CanvasLayer
 ## Menu de pause (Tab / Start) : équipe, cartes équipées, collection, objets.
 ## Le jeu est en pause tant que le menu est ouvert. Échap revient en arrière, puis ferme.
+## Dans la barre de gauche, la page de droite change dès qu'un onglet est sélectionné
+## (aperçu) ; Espace entre dans la page pour y naviguer.
 
 signal closed
 
@@ -13,6 +15,9 @@ var _content: VBoxContainer
 var _gold: Label
 var _back: Callable  ## Que faire sur Échap (revenir en arrière ou fermer)
 var _details: Label  ## Détails de la carte sélectionnée
+var _pages: Array[Callable] = []  ## Construction de la page de chaque onglet : page(entrer: bool)
+var _current_tab := 0
+var _deck_preview: VBoxContainer  ## Page Cartes : deck du héros sélectionné
 
 
 func _ready() -> void:
@@ -39,10 +44,11 @@ func _ready() -> void:
 	left_box.add_child(UiTheme.label(tr("MENU_TITLE"), UiTheme.GOLD, 12))
 	_tabs = VBoxContainer.new()
 	left_box.add_child(_tabs)
-	_tabs.add_child(UiTheme.button(tr("MENU_TEAM"), _show_team))
-	_tabs.add_child(UiTheme.button(tr("MENU_CARDS"), _show_card_heroes))
-	_tabs.add_child(UiTheme.button(tr("MENU_COLLECTION"), _show_collection))
-	_tabs.add_child(UiTheme.button(tr("MENU_ITEMS"), _show_items))
+	_pages = [_show_team, _show_card_heroes, _show_collection, _show_items]
+	for i in _pages.size():
+		var tab := UiTheme.button(tr(["MENU_TEAM", "MENU_CARDS", "MENU_COLLECTION", "MENU_ITEMS"][i]), _enter_tab.bind(i))
+		tab.focus_entered.connect(_preview_tab.bind(i))
+		_tabs.add_child(tab)
 	_tabs.add_child(UiTheme.button(tr("MENU_CLOSE"), close))
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -58,7 +64,6 @@ func _ready() -> void:
 	_content.add_theme_constant_override("separation", 4)
 	right.add_child(_content)
 
-	_show_team()
 	_focus_tabs()
 
 
@@ -78,10 +83,28 @@ func _unhandled_input(event: InputEvent) -> void:
 			_back.call()
 
 
+## Retour dans la barre de gauche, sur l'onglet de la page affichée (la page est rafraîchie).
 func _focus_tabs() -> void:
 	_back = close
 	_refresh_gold()
-	UiTheme.focus_first(_tabs)
+	var tab: Button = _tabs.get_child(_current_tab)
+	if tab.has_focus():
+		_preview_tab(_current_tab)
+	else:
+		tab.grab_focus()  # déclenche l'aperçu de la page
+
+
+## Onglet sélectionné avec les flèches : la page s'affiche, le focus reste dans la barre.
+func _preview_tab(index: int) -> void:
+	_current_tab = index
+	_back = close
+	_pages[index].call(false)
+
+
+## Espace sur un onglet : on entre dans la page (s'il y a quelque chose à choisir).
+func _enter_tab(index: int) -> void:
+	_current_tab = index
+	_pages[index].call(true)
 
 
 func _refresh_gold() -> void:
@@ -90,11 +113,10 @@ func _refresh_gold() -> void:
 
 # --- Équipe ---------------------------------------------------------------------
 
-func _show_team() -> void:
+func _show_team(_enter := false) -> void:
 	UiTheme.clear(_content)
 	for progress in GameState.heroes:
 		_content.add_child(_hero_card(progress))
-	_focus_tabs()
 
 
 func _hero_card(progress: HeroProgress) -> Control:
@@ -121,13 +143,35 @@ func _stats_text(progress: HeroProgress) -> String:
 
 # --- Cartes ------------------------------------------------------------------------
 
-func _show_card_heroes() -> void:
+## Choix du héros à équiper ; en dessous, aperçu du deck du héros sélectionné.
+func _show_card_heroes(enter := false, hero_index := 0) -> void:
 	UiTheme.clear(_content)
 	_content.add_child(UiTheme.label(tr("MENU_CHOOSE_HERO"), UiTheme.GOLD))
+	var buttons: Array[Button] = []
 	for progress in GameState.heroes:
-		_content.add_child(UiTheme.button(tr(progress.data.display_name), _show_card_slots.bind(progress)))
-	_back = _focus_tabs
-	UiTheme.focus_first(_content)
+		var button := UiTheme.button(progress.full_title(), _show_card_slots.bind(progress))
+		button.focus_entered.connect(_preview_deck.bind(progress))
+		_content.add_child(button)
+		buttons.append(button)
+	_deck_preview = VBoxContainer.new()
+	_deck_preview.add_theme_constant_override("separation", 4)
+	_content.add_child(_deck_preview)
+	_preview_deck(GameState.heroes[hero_index])
+	if enter:
+		_back = _focus_tabs
+		buttons[hero_index].grab_focus()
+
+
+## Aperçu du deck d'un héros : son résumé et ses 5 emplacements (non sélectionnables).
+func _preview_deck(progress: HeroProgress) -> void:
+	UiTheme.clear(_deck_preview)
+	_deck_preview.add_child(_hero_card(progress))
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	_deck_preview.add_child(row)
+	for slot in HeroProgress.SLOT_UNLOCK_LEVELS.size():
+		var locked_level: int = 0 if slot < progress.card_slots() else HeroProgress.SLOT_UNLOCK_LEVELS[slot]
+		row.add_child(CardView.new(progress.slots[slot], locked_level))
 
 
 ## Les 5 emplacements du héros (verrouillés tant que son niveau est trop bas).
@@ -144,7 +188,7 @@ func _show_card_slots(progress: HeroProgress, focus_slot := 0) -> void:
 		button.focused.connect(_describe_card)
 		row.add_child(button)
 	_add_details()
-	_back = _show_card_heroes
+	_back = _show_card_heroes.bind(true, GameState.heroes.find(progress))
 	row.get_child(focus_slot).grab_focus()
 
 
@@ -187,7 +231,7 @@ func _equip_card(progress: HeroProgress, slot: int, card: CardInstance) -> void:
 
 # --- Collection ---------------------------------------------------------------------
 
-func _show_collection() -> void:
+func _show_collection(enter := false) -> void:
 	UiTheme.clear(_content)
 	_content.add_child(_materials_line())
 	var cards := GameState.cards.duplicate()
@@ -196,8 +240,8 @@ func _show_collection() -> void:
 	if cards.is_empty():
 		_content.add_child(UiTheme.label(tr("MENU_COLLECTION_EMPTY"), UiTheme.DIM))
 	_add_details()
-	_back = _focus_tabs
-	if grid.get_child_count() > 0:
+	if enter and grid.get_child_count() > 0:
+		_back = _focus_tabs
 		grid.get_child(0).grab_focus()
 
 
@@ -274,7 +318,7 @@ func _rarer_first(a: CardInstance, b: CardInstance) -> bool:
 
 # --- Objets -------------------------------------------------------------------------
 
-func _show_items() -> void:
+func _show_items(enter := false) -> void:
 	UiTheme.clear(_content)
 	for item_id in GameState.inventory:
 		var count: int = GameState.inventory[item_id]
@@ -285,8 +329,9 @@ func _show_items() -> void:
 		_content.add_child(UiTheme.button("%s  x%d" % [tr(item.display_name), count], _choose_item_target.bind(item), item.heal_amount > 0))
 	if _content.get_child_count() == 0:
 		_content.add_child(UiTheme.label(tr("MENU_NO_ITEMS"), UiTheme.DIM))
-	_back = _focus_tabs
-	UiTheme.focus_first(_content)
+	if enter:
+		_back = _focus_tabs
+		UiTheme.focus_first(_content)
 
 
 func _choose_item_target(item: ItemData) -> void:
@@ -295,7 +340,7 @@ func _choose_item_target(item: ItemData) -> void:
 	for progress in GameState.heroes:
 		var text := "%s   %s %d / %d" % [tr(progress.data.display_name), tr("HP_SHORT"), progress.hp, progress.max_hp()]
 		_content.add_child(UiTheme.button(text, _use_item.bind(item, progress), progress.hp < progress.max_hp()))
-	_back = _show_items
+	_back = _show_items.bind(true)
 	UiTheme.focus_first(_content)
 
 
@@ -306,4 +351,4 @@ func _use_item(item: ItemData, progress: HeroProgress) -> void:
 	if GameState.inventory.get(item.id, 0) > 0:
 		_choose_item_target(item)
 	else:
-		_show_items()
+		_show_items(true)
