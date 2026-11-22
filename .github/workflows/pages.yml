@@ -1,0 +1,74 @@
+# À chaque push sur main : lance les tests, exporte le jeu pour navigateur
+# et le publie sur GitHub Pages.
+name: Publier sur GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: 4.8-beta4  # doit correspondre à la version de Godot utilisée sur le Mac
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Godot en cache
+        id: cache
+        uses: actions/cache@v6
+        with:
+          path: ~/godot
+          key: godot-${{ env.GODOT_VERSION }}-web
+
+      - name: Télécharger Godot et les modèles d'export web
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/godot && cd ~/godot
+          base=https://github.com/godotengine/godot-builds/releases/download/$GODOT_VERSION
+          curl -sSL -o godot.zip "$base/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          unzip -q godot.zip && mv "Godot_v${GODOT_VERSION}_linux.x86_64" godot && rm godot.zip
+          curl -sSL -o templates.tpz "$base/Godot_v${GODOT_VERSION}_export_templates.tpz"
+          unzip -q templates.tpz 'templates/web_nothreads_*' 'templates/version.txt' && rm templates.tpz
+
+      - name: Installer les modèles d'export
+        run: |
+          dir=~/.local/share/godot/export_templates/${GODOT_VERSION/-/.}
+          mkdir -p "$dir" && cp ~/godot/templates/* "$dir/"
+
+      - name: Importer le projet
+        run: ~/godot/godot --headless --import
+
+      - name: Tests
+        run: ~/godot/godot --headless -s addons/gut/gut_cmdln.gd
+
+      - name: Exporter pour navigateur
+        run: |
+          mkdir -p exports/web
+          ~/godot/godot --headless --export-release "Web" exports/web/index.html
+          test -f exports/web/index.pck
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: exports/web
+
+  deploy:
+    needs: export
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

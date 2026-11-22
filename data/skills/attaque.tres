@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Script" path="res://data/skill_data.gd" id="1_beqi3"]
+
+[resource]
+script = ExtResource("1_beqi3")
+id = &"attaque"
+display_name = "SKILL_ATTAQUE"
+ap_gain = 1
+impact_times = PackedFloat32Array(0.5)

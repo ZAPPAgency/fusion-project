@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="EquipmentData" format=3]
+
+[ext_resource type="Script" path="res://data/equipment_data.gd" id="1_3s66d"]
+
+[resource]
+script = ExtResource("1_3s66d")
+id = &"cotte_mailles"
+display_name = "EQUIP_COTTE_MAILLES"
+slot = 1
+price = 55
+defense = 4

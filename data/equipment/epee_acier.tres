@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="EquipmentData" format=3]
+
+[ext_resource type="Script" path="res://data/equipment_data.gd" id="1_1ube3"]
+
+[resource]
+script = ExtResource("1_1ube3")
+id = &"epee_acier"
+display_name = "EQUIP_EPEE_ACIER"
+for_hero = &"aldric"
+price = 60
+attack = 4

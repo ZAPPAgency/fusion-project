@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Script" path="res://data/skill_data.gd" id="1_kyiod"]
+
+[resource]
+script = ExtResource("1_kyiod")
+id = &"taillade"
+display_name = "SKILL_TAILLADE"
+impact_times = PackedFloat32Array(0.6)

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Script" path="res://data/skill_data.gd" id="1_sxfqq"]
+
+[resource]
+script = ExtResource("1_sxfqq")
+id = &"glas_funebre"
+display_name = "SKILL_GLAS_FUNEBRE"
+target = 1
+power = 1.2
+impact_times = PackedFloat32Array(0.6, 1.2, 1.7, 2.4)
+hit_animations = Array[StringName]([&"attack1", &"attack2"])
+melee = false
+impact_fx = &"dark"

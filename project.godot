@@ -1,0 +1,49 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="Valbrune"
+run/main_scene="res://ui/title_screen.tscn"
+config/features=PackedStringArray("4.8", "Forward Plus")
+
+[autoload]
+
+Settings="*res://autoload/settings.gd"
+Controls="*res://autoload/controls.gd"
+GameState="*res://autoload/game_state.gd"
+SaveSystem="*res://autoload/save_system.gd"
+AudioManager="*res://autoload/audio_manager.gd"
+SceneRouter="*res://autoload/scene_router.gd"
+Dialogue="*res://ui/dialogue_box.gd"
+
+[display]
+
+window/size/viewport_width=640
+window/size/viewport_height=360
+window/size/window_width_override=1280
+window/size/window_height_override=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="keep"
+window/stretch/scale_mode="fractional"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/gut/plugin.cfg")
+
+[internationalization]
+
+locale/translations=PackedStringArray("res://i18n/translations.fr.translation", "res://i18n/translations.en.translation")
+locale/fallback="fr"
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=0
+viewport/hdr_2d=true

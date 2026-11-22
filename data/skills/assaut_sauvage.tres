@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Script" path="res://data/skill_data.gd" id="1_d7r0l"]
+
+[resource]
+script = ExtResource("1_d7r0l")
+id = &"assaut_sauvage"
+display_name = "SKILL_ASSAUT_SAUVAGE"
+power = 1.5
+impact_times = PackedFloat32Array(0.6, 1.15, 1.55)
+hit_animations = Array[StringName]([&"attack1", &"attack2", &"attack3"])

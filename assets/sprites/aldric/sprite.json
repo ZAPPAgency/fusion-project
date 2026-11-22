@@ -1,0 +1,10 @@
+{
+	"animations": {
+		"idle": {"source": "Idle.png", "fps": 10, "loop": true},
+		"run": {"source": "Run.png", "fps": 14, "loop": true},
+		"attack1": {"source": "Attack1.png", "fps": 12, "impact_frame": 3},
+		"attack2": {"source": "Attack2.png", "fps": 12, "impact_frame": 3},
+		"hurt": {"source": "Take Hit.png", "fps": 12},
+		"death": {"source": "Death.png", "fps": 10}
+	}
+}

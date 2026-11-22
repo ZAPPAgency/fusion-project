@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Script" path="res://data/skill_data.gd" id="1_cwfq6"]
+
+[resource]
+script = ExtResource("1_cwfq6")
+id = &"morsure"
+display_name = "SKILL_MORSURE"
+impact_times = PackedFloat32Array(0.55)
+impact_fx = &"dark"

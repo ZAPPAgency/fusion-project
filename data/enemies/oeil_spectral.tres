@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="CombatantData" format=3]
+
+[ext_resource type="Resource" path="res://data/skills/morsure.tres" id="1_km2g0"]
+[ext_resource type="Script" path="res://data/combatant_data.gd" id="2_5s7de"]
+[ext_resource type="Script" path="res://data/skill_data.gd" id="3_12ljm"]
+[ext_resource type="Resource" path="res://data/skills/cri_spectral.tres" id="4_acs6n"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/oeil_spectral/sprite_frames.tres" id="5_qf0y4"]
+
+[resource]
+script = ExtResource("2_5s7de")
+id = &"oeil_spectral"
+display_name = "ENEMY_OEIL_SPECTRAL"
+is_enemy = true
+placeholder_color = Color(0.7, 0.9, 0.95, 1)
+sprite_frames = ExtResource("5_qf0y4")
+max_hp = 55
+attack = 16
+defense = 4
+speed = 11
+xp_reward = 12
+gold_reward = 6
+basic_attack = ExtResource("1_km2g0")
+skills = Array[ExtResource("3_12ljm")]([ExtResource("4_acs6n")])

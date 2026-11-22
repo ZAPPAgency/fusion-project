@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Script" path="res://data/skill_data.gd" id="1_fdxc4"]
+
+[resource]
+script = ExtResource("1_fdxc4")
+id = &"brise_garde"
+display_name = "SKILL_BRISE_GARDE"
+power = 2.4
+ap_cost = 4
+unlock_level = 3
+impact_times = PackedFloat32Array(0.9)
+hit_animations = Array[StringName]([&"attack2"])

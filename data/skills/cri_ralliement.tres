@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Script" path="res://data/skill_data.gd" id="1_aeq4t"]
+
+[resource]
+script = ExtResource("1_aeq4t")
+id = &"cri_ralliement"
+display_name = "SKILL_CRI_RALLIEMENT"
+target = 3
+effect = 1
+power = 1.2
+ap_cost = 3
+unlock_level = 2
+impact_times = PackedFloat32Array(0.5)
+melee = false

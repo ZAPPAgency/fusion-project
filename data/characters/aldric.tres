@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="CombatantData" format=3]
+
+[ext_resource type="Resource" path="res://data/skills/attaque.tres" id="1_c63m1"]
+[ext_resource type="Script" path="res://data/combatant_data.gd" id="2_wn0po"]
+[ext_resource type="Script" path="res://data/skill_data.gd" id="3_wryfj"]
+[ext_resource type="Resource" path="res://data/skills/frappe_bouclier.tres" id="4_f5dvb"]
+[ext_resource type="Resource" path="res://data/skills/cri_ralliement.tres" id="5_tnm4i"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/aldric/sprite_frames.tres" id="6_wn0po"]
+[ext_resource type="Resource" path="res://data/skills/brise_garde.tres" id="6_wryfj"]
+
+[resource]
+script = ExtResource("2_wn0po")
+id = &"aldric"
+display_name = "HERO_ALDRIC"
+placeholder_color = Color(0.45, 0.6, 0.85, 1)
+sprite_frames = ExtResource("6_wn0po")
+max_hp = 140
+attack = 14
+defense = 14
+speed = 8
+hp_growth = 12.0
+defense_growth = 2.0
+speed_growth = 0.4
+basic_attack = ExtResource("1_c63m1")
+skills = Array[ExtResource("3_wryfj")]([ExtResource("4_f5dvb"), ExtResource("5_tnm4i"), ExtResource("6_wryfj")])

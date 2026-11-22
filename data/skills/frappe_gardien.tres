@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Script" path="res://data/skill_data.gd" id="1_ssvi3"]
+
+[resource]
+script = ExtResource("1_ssvi3")
+id = &"frappe_gardien"
+display_name = "SKILL_FRAPPE_GARDIEN"
+impact_times = PackedFloat32Array(0.6, 1.2)
+hit_animations = Array[StringName]([&"attack1", &"attack2"])
+impact_fx = &"dark"

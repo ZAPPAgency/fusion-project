@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="CombatantData" format=3]
+
+[ext_resource type="Resource" path="res://data/skills/coup_lance.tres" id="1_83ups"]
+[ext_resource type="Script" path="res://data/combatant_data.gd" id="2_lnovp"]
+[ext_resource type="Script" path="res://data/skill_data.gd" id="3_k8arw"]
+[ext_resource type="Resource" path="res://data/skills/charge.tres" id="4_6ldkx"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/gobelin_lancier/sprite_frames.tres" id="5_lnovp"]
+
+[resource]
+script = ExtResource("2_lnovp")
+id = &"gobelin_lancier"
+display_name = "ENEMY_GOBELIN_LANCIER"
+is_enemy = true
+placeholder_color = Color(0.5, 0.6, 0.25, 1)
+sprite_frames = ExtResource("5_lnovp")
+max_hp = 75
+attack = 15
+defense = 9
+speed = 9
+xp_reward = 14
+gold_reward = 7
+basic_attack = ExtResource("1_83ups")
+skills = Array[ExtResource("3_k8arw")]([ExtResource("4_6ldkx")])

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Script" path="res://data/skill_data.gd" id="1_6vmgn"]
+
+[resource]
+script = ExtResource("1_6vmgn")
+id = &"meteore_braise"
+display_name = "SKILL_METEORE_BRAISE"
+target = 1
+power = 1.6
+ap_cost = 6
+unlock_level = 3
+impact_times = PackedFloat32Array(0.6, 1.2)
+hit_animations = Array[StringName]([&"attack1", &"attack2"])
+melee = false
+impact_fx = &"fire"

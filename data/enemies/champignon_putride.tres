@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="CombatantData" format=3]
+
+[ext_resource type="Resource" path="res://data/skills/spores.tres" id="1_p8431"]
+[ext_resource type="Script" path="res://data/combatant_data.gd" id="2_30ww4"]
+[ext_resource type="Script" path="res://data/skill_data.gd" id="3_rsf6v"]
+[ext_resource type="Resource" path="res://data/skills/nuage_toxique.tres" id="4_awpe1"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/champignon_putride/sprite_frames.tres" id="5_30ww4"]
+
+[resource]
+script = ExtResource("2_30ww4")
+id = &"champignon_putride"
+display_name = "ENEMY_CHAMPIGNON_PUTRIDE"
+is_enemy = true
+placeholder_color = Color(0.6, 0.35, 0.6, 1)
+sprite_frames = ExtResource("5_30ww4")
+max_hp = 90
+attack = 11
+defense = 12
+speed = 6
+xp_reward = 15
+gold_reward = 8
+basic_attack = ExtResource("1_p8431")
+skills = Array[ExtResource("3_rsf6v")]([ExtResource("4_awpe1")])

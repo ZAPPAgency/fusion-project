@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Script" path="res://data/skill_data.gd" id="1_6fypu"]
+
+[resource]
+script = ExtResource("1_6fypu")
+id = &"spores"
+display_name = "SKILL_SPORES"
+impact_times = PackedFloat32Array(0.6)
+impact_fx = &"poison"

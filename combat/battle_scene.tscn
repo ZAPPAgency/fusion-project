@@ -1,0 +1,35 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://combat/battle_manager.gd" id="1_manager"]
+[ext_resource type="Script" path="res://combat/battle_background.gd" id="2_background"]
+[ext_resource type="Script" path="res://combat/target_selector.gd" id="3_target"]
+[ext_resource type="Script" path="res://ui/battle_hud.gd" id="4_hud"]
+[ext_resource type="Script" path="res://combat/timing_session.gd" id="5_timing"]
+[ext_resource type="Script" path="res://fx/battle_camera.gd" id="6_camera"]
+[ext_resource type="Script" path="res://fx/battle_fx.gd" id="7_fx"]
+
+[node name="BattleScene" type="Node2D"]
+script = ExtResource("1_manager")
+
+[node name="Background" type="Node2D" parent="."]
+script = ExtResource("2_background")
+
+[node name="Units" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="TargetSelector" type="Node2D" parent="."]
+script = ExtResource("3_target")
+
+[node name="Hud" type="CanvasLayer" parent="."]
+layer = 2
+script = ExtResource("4_hud")
+
+[node name="TimingSession" type="Node" parent="."]
+script = ExtResource("5_timing")
+
+[node name="Camera" type="Camera2D" parent="."]
+script = ExtResource("6_camera")
+
+[node name="Fx" type="Node2D" parent="." node_paths=PackedStringArray("camera")]
+script = ExtResource("7_fx")
+camera = NodePath("../Camera")

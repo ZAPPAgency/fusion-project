@@ -1,0 +1,11 @@
+{
+	"frame_size": [231, 190],
+	"animations": {
+		"idle": {"source": "Idle.png", "fps": 8, "loop": true},
+		"run": {"source": "Run.png", "fps": 12, "loop": true},
+		"attack1": {"source": "Attack1.png", "fps": 12, "impact_frame": 4},
+		"attack2": {"source": "Attack2.png", "fps": 12, "impact_frame": 5},
+		"hurt": {"source": "Hit.png", "fps": 10},
+		"death": {"source": "Death.png", "fps": 10}
+	}
+}

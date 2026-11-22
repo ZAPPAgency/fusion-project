@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Script" path="res://data/skill_data.gd" id="1_0i4my"]
+
+[resource]
+script = ExtResource("1_0i4my")
+id = &"nuage_toxique"
+display_name = "SKILL_NUAGE_TOXIQUE"
+target = 1
+power = 0.7
+impact_times = PackedFloat32Array(0.8)
+hit_animations = Array[StringName]([&"attack3"])
+melee = false
+impact_fx = &"poison"

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/sprites/fenn/arrow/Static.png" id="1_b3sle"]
+[ext_resource type="Script" path="res://data/skill_data.gd" id="1_pafot"]
+
+[resource]
+script = ExtResource("1_pafot")
+id = &"coup_precis"
+display_name = "SKILL_COUP_PRECIS"
+power = 1.7
+ap_cost = 2
+impact_times = PackedFloat32Array(0.95)
+melee = false
+projectile = ExtResource("1_b3sle")
+projectile_travel = 0.22

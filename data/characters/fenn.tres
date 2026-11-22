@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="CombatantData" format=3]
+
+[ext_resource type="Resource" path="res://data/skills/tir.tres" id="1_w6b4s"]
+[ext_resource type="Script" path="res://data/combatant_data.gd" id="2_w6b4s"]
+[ext_resource type="Script" path="res://data/skill_data.gd" id="3_o8pra"]
+[ext_resource type="Resource" path="res://data/skills/coup_precis.tres" id="4_01njf"]
+[ext_resource type="Resource" path="res://data/skills/pluie_fleches.tres" id="5_85gxw"]
+[ext_resource type="Resource" path="res://data/skills/tir_percant.tres" id="6_o8pra"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/fenn/sprite_frames.tres" id="6_w6b4s"]
+
+[resource]
+script = ExtResource("2_w6b4s")
+id = &"fenn"
+display_name = "HERO_FENN"
+placeholder_color = Color(0.35, 0.75, 0.4, 1)
+sprite_frames = ExtResource("6_w6b4s")
+sprite_scale = 1.25
+attack = 15
+defense = 9
+speed = 14
+hp_growth = 9.0
+speed_growth = 0.7
+basic_attack = ExtResource("1_w6b4s")
+skills = Array[ExtResource("3_o8pra")]([ExtResource("4_01njf"), ExtResource("5_85gxw"), ExtResource("6_o8pra")])

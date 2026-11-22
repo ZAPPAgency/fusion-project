@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="CombatantData" format=3]
+
+[ext_resource type="Resource" path="res://data/skills/attaque.tres" id="1_beow6"]
+[ext_resource type="Script" path="res://data/combatant_data.gd" id="2_ew8jd"]
+[ext_resource type="Script" path="res://data/skill_data.gd" id="3_g3e0o"]
+[ext_resource type="Resource" path="res://data/skills/trait_braise.tres" id="4_nnrg1"]
+[ext_resource type="Resource" path="res://data/skills/vague_flammes.tres" id="5_btcr8"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/ysolde/sprite_frames.tres" id="6_ew8jd"]
+[ext_resource type="Resource" path="res://data/skills/meteore_braise.tres" id="6_g3e0o"]
+
+[resource]
+script = ExtResource("2_ew8jd")
+id = &"ysolde"
+display_name = "HERO_YSOLDE"
+placeholder_color = Color(0.95, 0.45, 0.2, 1)
+sprite_frames = ExtResource("6_ew8jd")
+sprite_scale = 0.7
+max_hp = 85
+attack = 18
+defense = 7
+hp_growth = 7.0
+attack_growth = 3.0
+basic_attack = ExtResource("1_beow6")
+skills = Array[ExtResource("3_g3e0o")]([ExtResource("4_nnrg1"), ExtResource("5_btcr8"), ExtResource("6_g3e0o")])

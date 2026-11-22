@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Script" path="res://data/skill_data.gd" id="1_idpc7"]
+
+[resource]
+script = ExtResource("1_idpc7")
+id = &"frappe_bouclier"
+display_name = "SKILL_FRAPPE_BOUCLIER"
+power = 1.6
+ap_cost = 2
+impact_times = PackedFloat32Array(0.45, 0.9)
+hit_animations = Array[StringName]([&"attack1", &"attack2"])

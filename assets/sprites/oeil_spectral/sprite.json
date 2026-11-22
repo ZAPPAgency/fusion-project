@@ -1,0 +1,12 @@
+{
+	"hover": 18,
+	"animations": {
+		"idle": {"source": "Flight.png", "fps": 10, "loop": true},
+		"run": {"source": "Flight.png", "fps": 14, "loop": true},
+		"attack1": {"source": "Attack.png", "fps": 12, "impact_frame": 6},
+		"attack2": {"source": "Attack2.png", "fps": 12, "impact_frame": 5},
+		"attack3": {"source": "Attack3.png", "fps": 12, "impact_frame": 4},
+		"hurt": {"source": "Take Hit.png", "fps": 10},
+		"death": {"source": "Death.png", "fps": 10}
+	}
+}

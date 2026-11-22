@@ -1,0 +1,119 @@
+keys,fr,en
+HERO_ALDRIC,Aldric,Aldric
+HERO_YSOLDE,Ysolde,Ysolde
+HERO_FENN,Fenn,Fenn
+ENEMY_SQUELETTE,Squelette,Skeleton
+ENEMY_GOBELIN_LANCIER,Gobelin lancier,Goblin Spearman
+ENEMY_OEIL_SPECTRAL,Œil spectral,Spectral Eye
+ENEMY_CHAMPIGNON_PUTRIDE,Champignon putride,Rotting Shroom
+ENEMY_GARDIEN_CLOCHE,Gardien de la Cloche,Bell Warden
+SKILL_ATTAQUE,Attaque,Attack
+SKILL_FRAPPE_BOUCLIER,Frappe de bouclier,Shield Bash
+SKILL_CRI_RALLIEMENT,Cri de ralliement,Rallying Cry
+SKILL_TRAIT_BRAISE,Trait de braise,Ember Bolt
+SKILL_VAGUE_FLAMMES,Vague de flammes,Flame Wave
+SKILL_COUP_PRECIS,Coup précis,Precise Strike
+SKILL_PLUIE_FLECHES,Pluie de flèches,Arrow Rain
+SKILL_MORSURE,Morsure,Bite
+SKILL_ASSAUT_SAUVAGE,Assaut sauvage,Savage Lunge
+SKILL_COUP_LANCE,Coup de lance,Spear Thrust
+SKILL_CHARGE,Charge,Charge
+SKILL_TAILLADE,Taillade,Slash
+SKILL_CRI_SPECTRAL,Cri spectral,Wail
+SKILL_SPORES,Spores,Spores
+SKILL_NUAGE_TOXIQUE,Nuage toxique,Toxic Cloud
+SKILL_FRAPPE_GARDIEN,Frappe du gardien,Warden Strike
+SKILL_GLAS_FUNEBRE,Glas funèbre,Death Knell
+ITEM_POTION,Potion,Potion
+ITEM_ETHER,Éther,Ether
+MENU_ATTACK,Attaque,Attack
+MENU_SKILLS,Compétences,Skills
+MENU_ITEMS,Objets,Items
+HP_SHORT,PV,HP
+AP_SHORT,PA,AP
+MSG_USES,{user} utilise {skill} !,{user} uses {skill}!
+BATTLE_VICTORY,Victoire !,Victory!
+BATTLE_DEFEAT,Défaite...,Defeat...
+BATTLE_RESTART,Appuie sur Espace pour recommencer,Press Space to restart
+QTE_PERFECT,PARFAIT !,PERFECT!
+QTE_GOOD,Bien,Good
+QTE_PARRY,PARADE !,PARRY!
+QTE_DODGE,Esquive,Dodge
+QTE_COUNTER,CONTRE !,COUNTER!
+HINT_ATTACK,[{key}] au moment de l'impact,[{key}] on impact
+HINT_DEFENSE,[{parry}] Parade    [{dodge}] Esquive,[{parry}] Parry    [{dodge}] Dodge
+DIFF_EASY,Facile,Easy
+DIFF_NORMAL,Normal,Normal
+DIFF_HARD,Exigeant,Hard
+DIFFICULTY_LABEL,Difficulté : {name} [F1]    Calibrer [F2],Difficulty: {name} [F1]    Calibrate [F2]
+CALIB_TITLE,CALIBRATION DU TIMING,TIMING CALIBRATION
+CALIB_INSTRUCTIONS,Appuie sur [{key}] à chaque flash,Press [{key}] on every flash
+CALIB_RESULT,Décalage mesuré : {ms} ms (enregistré),Measured offset: {ms} ms (saved)
+CALIB_BACK,[{key}] Retour au combat,[{key}] Back to battle
+SKILL_TIR,Tir,Shot
+BATTLE_CONTINUE,Appuie sur Espace pour continuer,Press Space to continue
+MAP_VILLAGE,Village de Valbrune,Valbrune Village
+MAP_FOREST,Forêt de Brumecendre,Ashmist Forest
+MAP_CHAPEL,Chapelle en ruine,Ruined Chapel
+NPC_ELDER,Ancienne Odile,Elder Odile
+NPC_INNKEEPER,Bram l'aubergiste,Bram the Innkeeper
+NPC_MERCHANT,Lise la marchande,Lise the Merchant
+NPC_GUARD,Garde Corentin,Guard Corentin
+DLG_ELDER_1,"Aldric... Tu es revenu. Tu l'as entendue, cette nuit ? La cloche a sonné faux.","Aldric... You came back. Did you hear it last night? The bell rang false."
+DLG_ELDER_2,"Depuis qu'elle s'est fêlée, des créatures de cendre sortent de la forêt de Brumecendre.","Ever since it cracked, creatures of ash have been crawling out of Ashmist Forest."
+DLG_ELDER_3,"La chapelle est au nord, au-delà de la forêt. Découvrez ce qui a brisé la cloche.","The chapel lies north, beyond the forest. Find out what broke the bell."
+DLG_ELDER_4,Ysolde et Fenn t'accompagneront. Que la lumière vous garde.,Ysolde and Fenn will go with you. May the light keep you.
+DLG_INN_1,"Bienvenue à l'Auberge du Clocher ! Asseyez-vous, la maison vous offre un bon repas.","Welcome to the Belfry Inn! Sit down, a hot meal is on the house."
+DLG_INN_HEALED,Vos forces sont revenues. Revenez quand vous voulez !,Your strength has returned. Come back anytime!
+DLG_GUARD_1,"La forêt est au nord. Les créatures y rôdent : si tu les touches, il faudra te battre.","The forest is to the north. Creatures lurk there: touch one and you'll have to fight."
+DLG_GUARD_2,"Elles sont plus lentes que toi. Tu peux toujours les éviter.","They're slower than you. You can always avoid them."
+DLG_BELL_BEFORE,"La grande cloche de Valbrune. Une fissure incandescente la traverse de part en part.","The great bell of Valbrune. A glowing crack runs right through it."
+DLG_BELL_AFTER_1,"Le Gardien est tombé, mais la fissure brûle encore. Quelque chose, ailleurs, la nourrit.","The Warden has fallen, but the crack still burns. Something, somewhere, is feeding it."
+DLG_BELL_AFTER_2,Fin de la démo. Merci d'avoir joué !,End of the demo. Thanks for playing!
+CHEST_FOUND,{item} x{count} obtenu !,Found {item} x{count}!
+CHEST_EMPTY,Le coffre est vide.,The chest is empty.
+DLG_MERCHANT_1,"Bienvenue ! Avec ces créatures dehors, il vous faut du bon matériel.","Welcome! With those creatures out there, you need proper gear."
+DLG_INN_SAVE,Voulez-vous inscrire votre passage dans le registre ? (sauvegarder),Would you like to sign the guest book? (save)
+DLG_INN_SAVED,C'est noté. Bonne route !,Noted. Safe travels!
+DLG_INN_SAVE_FAILED,"Hmm, l'encre a coulé... (la sauvegarde a échoué)","Hmm, the ink ran... (saving failed)"
+YES,Oui,Yes
+NO,Non,No
+LEVEL_SHORT,Nv,Lv
+STAT_ATK,ATQ,ATK
+STAT_DEF,DÉF,DEF
+STAT_SPD,VIT,SPD
+XP_MAX,max,max
+GOLD,Or,Gold
+GOLD_SHORT,or,g
+REWARD_LINE,+{xp} XP   +{gold} or,+{xp} XP   +{gold} gold
+REWARD_LEVEL_UP,{hero} passe au niveau {level} !,{hero} reached level {level}!
+REWARD_NEW_SKILL,{hero} apprend {skill} !,{hero} learned {skill}!
+MENU_TITLE,Menu,Menu
+MENU_TEAM,Équipe,Party
+MENU_EQUIPMENT,Équipement,Equipment
+MENU_CLOSE,Fermer,Close
+MENU_CHOOSE_HERO,Qui équiper ?,Who to equip?
+MENU_UNEQUIP,(Retirer),(Remove)
+MENU_NOTHING_TO_EQUIP,Rien à équiper ici. La marchande du village en vend.,Nothing to equip here. The village merchant sells some.
+MENU_NO_ITEMS,Aucun objet.,No items.
+SLOT_WEAPON,Arme,Weapon
+SLOT_ARMOR,Armure,Armor
+SLOT_ACCESSORY,Accessoire,Accessory
+SHOP_TITLE,Boutique de Lise,Lise's Shop
+SHOP_OWNED,Possédé,Owned
+SHOP_HINT,[Espace] Acheter    [Échap] Partir,[Space] Buy    [Esc] Leave
+ITEM_GRANDE_POTION,Grande potion,Hi-Potion
+EQUIP_EPEE_ACIER,Épée d'acier,Steel Sword
+EQUIP_BATON_BRAISE,Bâton de braise,Ember Staff
+EQUIP_ARC_IF,Arc en if,Yew Bow
+EQUIP_COTTE_MAILLES,Cotte de mailles,Chainmail
+EQUIP_CAPE_VOYAGE,Cape de voyage,Travel Cloak
+EQUIP_ANNEAU_VIE,Anneau de vie,Ring of Life
+EQUIP_AMULETTE_CELERITE,Amulette de célérité,Swiftness Amulet
+SKILL_BRISE_GARDE,Brise-garde,Guard Breaker
+SKILL_METEORE_BRAISE,Météore de braise,Ember Meteor
+SKILL_TIR_PERCANT,Tir perçant,Piercing Shot
+TITLE_SUBTITLE,La Cloche Fêlée,The Cracked Bell
+TITLE_CONTINUE,Continuer,Continue
+TITLE_NEW_GAME,Nouvelle partie,New Game
+TITLE_QUIT,Quitter,Quit

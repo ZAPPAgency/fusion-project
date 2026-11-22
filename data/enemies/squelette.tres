@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="CombatantData" format=3]
+
+[ext_resource type="Resource" path="res://data/skills/taillade.tres" id="1_64off"]
+[ext_resource type="Script" path="res://data/combatant_data.gd" id="2_d7yt7"]
+[ext_resource type="Script" path="res://data/skill_data.gd" id="3_i1mow"]
+[ext_resource type="Resource" path="res://data/skills/assaut_sauvage.tres" id="4_qdcin"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/squelette/sprite_frames.tres" id="5_ktbhi"]
+
+[resource]
+script = ExtResource("2_d7yt7")
+id = &"squelette"
+display_name = "ENEMY_SQUELETTE"
+is_enemy = true
+placeholder_color = Color(0.55, 0.55, 0.6, 1)
+sprite_frames = ExtResource("5_ktbhi")
+max_hp = 60
+attack = 13
+defense = 6
+speed = 13
+xp_reward = 12
+gold_reward = 6
+basic_attack = ExtResource("1_64off")
+skills = Array[ExtResource("3_i1mow")]([ExtResource("4_qdcin")])
