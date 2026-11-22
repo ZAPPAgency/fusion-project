@@ -6,8 +6,8 @@ extends Node2D
 ## - forme ultime (aura_level 2) : aura en pixel art liée à l'élément du héros, comme les auras
 ##   des jeux en ligne : ailes, motif au sol, particules et auréole.
 ##     lumière (Aldric) : ailes d'ange, cercle de runes, rayons qui montent, auréole dorée ;
-##     feu (Ysolde) : brasier pixel art qui l'enveloppe (PixelFire), spirale de flammes qui
-##       monte en s'enroulant autour d'elle (en boucle), braises ;
+##     feu (Ysolde) : deux rubans de feu épais qui montent en s'enroulant autour d'elle
+##       (en boucle), braises ;
 ##     foudre (Fenn) : ailes d'énergie, éclairs qui crépitent, anneau électrique.
 ## Ce nœud se place derrière le sprite ; `front` (devant le sprite) dessine ce qui passe
 ## devant le corps. Utiliser HeroLook.attach(). L'origine est aux pieds du héros.
@@ -40,7 +40,6 @@ var _bolt_timer := 0.0
 var _spawn_timer := 0.0
 var _noise := FastNoiseLite.new()
 var _rng := RandomNumberGenerator.new()
-var _fire: PixelFire  ## Brasier de la forme ultime de feu
 
 
 ## Ajoute l'apparence du stade autour de `sprite` (même parent) : aura derrière, calque devant.
@@ -108,11 +107,7 @@ func _ready() -> void:
 	add_child(_glow)
 	if stage.aura_level == 1:
 		add_child(_make_sparks())
-	elif stage.aura_element == HeroStage.AuraElement.FIRE:  # le feu a son brasier à la place des ailes
-		_fire = PixelFire.new(Vector2i(roundi(body_size.x * 1.5) + 10, roundi(body_size.y * 1.15)))
-		add_child(_fire.back)
-		front.add_child(_fire.front)
-	else:
+	elif stage.aura_element != HeroStage.AuraElement.FIRE:  # le feu a ses rubans à la place des ailes
 		_make_wings()
 
 
@@ -122,8 +117,6 @@ func _process(delta: float) -> void:
 	if stage.aura_level >= 2:
 		_update_wings()
 		_update_particles(delta)
-		if _fire:
-			_fire.update(delta)
 	queue_redraw()
 	front.queue_redraw()
 
@@ -356,9 +349,12 @@ func _draw_halo(canvas: CanvasItem) -> void:
 		_pixel(canvas, point, LIGHT_WHITE if i == sparkle else LIGHT_GOLD)
 
 
-## Feu : deux traînées de flammes montent en s'enroulant autour du corps, puis repartent
-## d'en bas (décalées d'une demi-montée pour que l'effet ne s'arrête jamais).
-## Chaque point de la traînée est devant le corps quand il est sur la moitié avant du cercle.
+## Feu : deux rubans de feu montent en s'enroulant autour du corps, puis repartent d'en bas
+## (décalés d'une demi-montée pour que l'effet ne s'arrête jamais).
+## Chaque point du ruban est une petite colonne de flamme : bord rouge sombre, cœur jaune-blanc
+## en bas, orange puis pointe rouge en haut. La hauteur des pointes vacille (bruit).
+## Le ruban est épais à la tête et s'affine vers la queue. Un point est devant le corps
+## quand il est sur la moitié avant du cercle.
 func _draw_fire_spiral(canvas: CanvasItem, back: bool) -> void:
 	var height := _spiral_height()
 	for strand in 2:
@@ -366,25 +362,36 @@ func _draw_fire_spiral(canvas: CanvasItem, back: bool) -> void:
 		# Apparition en bas et extinction en haut : la boucle repart en douceur.
 		var fade := minf(1.0, progress * 6.0) * minf(1.0, (1.0 - progress) * 5.0)
 		var head := progress * height
-		var samples := int(height * SPIRAL_TRAIL * 8.0)  # serré : la traînée reste continue
-		for i in samples:
-			var behind := float(i) / samples  # 0 = tête de la flamme, 1 = bout de la traînée
+		var samples := int(height * SPIRAL_TRAIL * 4.0)
+		# De la queue vers la tête : la tête (la plus chaude) est dessinée par-dessus.
+		for i in range(samples - 1, -1, -1):
+			var behind := float(i) / samples  # 0 = tête du ruban, 1 = bout de la queue
 			var y := head - behind * height * SPIRAL_TRAIL
 			if y < 0.0:
-				break
+				continue
 			var angle := _spiral_angle(strand, y)
 			if (sin(angle) < 0.0) != back:
 				continue
-			var ramp_index := mini(int(behind * FIRE_RAMP.size() * 1.2), FIRE_RAMP.size() - 1)
-			var color: Color = FIRE_RAMP[ramp_index]
-			color.a *= (1.0 - behind) * fade * 0.85
-			var point := _spiral_point(strand, y)
-			_pixel(canvas, point, color, 2.0 if behind < 0.5 else 1.0)
-			# Petites langues de flamme qui s'échappent vers le haut, animées par du bruit.
-			if i % 6 == 0 and behind < 0.7:
-				var lick := int((_noise.get_noise_2d(i * 7.0 + strand * 50.0, _time * 80.0) + 1.0) * 2.0)
-				for up in lick:
-					_pixel(canvas, point + Vector2(0, -2 - up), Color(FIRE_RAMP[mini(ramp_index + 1 + up, FIRE_RAMP.size() - 1)], color.a * 0.7))
+			var flicker := (_noise.get_noise_2d(i * 5.0 + strand * 40.0, _time * 90.0) + 1.0) * 0.5
+			_draw_flame_column(canvas, _spiral_point(strand, y).floor(), behind, flicker, fade)
+
+
+## Une colonne de flamme de 2 pixels de large posée sur le ruban.
+func _draw_flame_column(canvas: CanvasItem, base: Vector2, behind: float, flicker: float, fade: float) -> void:
+	var alpha := (1.0 - behind * 0.8) * fade
+	var taper := clampf(behind / 0.1, 0.4, 1.0)  # la tête du ruban se termine en pointe
+	var thickness := maxf(1.0, roundf(lerpf(5.0, 2.0, behind) * taper))
+	var tongue := roundf(thickness * 0.6 + flicker * 8.0 * (1.0 - behind))  # pointe au-dessus du ruban
+	var bottom := base.y + ceilf(thickness * 0.5)
+	var top := base.y - tongue
+	var core_top := bottom - maxf(2.0, thickness * 0.8)
+	var middle_top := core_top - roundf((core_top - top) * 0.45)
+	var hot := behind < 0.35  # la tête est plus chaude que la queue
+	# Bord sombre autour de la colonne : donne du volume et une silhouette de flamme.
+	canvas.draw_rect(Rect2(base.x - 1, top + 1, 4, bottom - top), Color(FIRE_RAMP[3], FIRE_RAMP[3].a * alpha * 0.7))
+	canvas.draw_rect(Rect2(base.x, top, 2, middle_top - top), Color(FIRE_RAMP[2 if hot else 3], alpha))
+	canvas.draw_rect(Rect2(base.x, middle_top, 2, core_top - middle_top), Color(FIRE_RAMP[1 if hot else 2], alpha))
+	canvas.draw_rect(Rect2(base.x, core_top, 2, bottom - core_top), Color(FIRE_RAMP[0 if hot else 1], alpha))
 
 
 func _spiral_height() -> float:
