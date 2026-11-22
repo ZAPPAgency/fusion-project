@@ -11,6 +11,7 @@ extends Node2D
 @export var map_name := ""  ## Clé de traduction affichée en arrivant, ex. "MAP_FOREST"
 @export var ambience := Color(0.6, 0.64, 0.82)  ## Teinte de nuit
 @export var fireflies := false  ## Lucioles (forêt)
+@export var atmosphere := Atmosphere.Preset.VILLAGE  ## Brume, nuages, particules du lieu (voir Atmosphere)
 
 @onready var _ground: TileMapLayer = $Ground
 @onready var _objects: Node2D = $Objects
@@ -20,8 +21,7 @@ extends Node2D
 func _ready() -> void:
 	GameState.current_map = scene_file_path
 	FxLibrary.add_night_ambience(self, ambience)
-	if fireflies:
-		_add_fireflies()
+	_add_atmosphere()
 
 	var player := Player.new()
 	player.position = _start_position()
@@ -115,27 +115,11 @@ func _play_autoplay(player: Player) -> void:
 		index += 1
 
 
-## Lucioles : petites lumières vertes-dorées qui flottent dans la forêt.
-func _add_fireflies() -> void:
+## Ambiance du lieu, placée juste après le sol : la brume passe sous les personnages.
+func _add_atmosphere() -> void:
 	var tile_size := Vector2(_ground.tile_set.tile_size)
 	var used := _ground.get_used_rect()
-	var area := Rect2(Vector2(used.position) * tile_size, Vector2(used.size) * tile_size)
-	var flies := CPUParticles2D.new()
-	flies.material = FxLibrary.unshaded_material()
-	flies.z_index = 50
-	flies.position = area.get_center()
-	flies.amount = int(area.get_area() / 6000.0)
-	flies.lifetime = 6.0
-	flies.preprocess = 6.0
-	flies.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
-	flies.emission_rect_extents = area.size / 2
-	flies.gravity = Vector2.ZERO
-	flies.direction = Vector2.UP
-	flies.spread = 180.0
-	flies.initial_velocity_min = 3.0
-	flies.initial_velocity_max = 10.0
-	var ramp := Gradient.new()
-	ramp.offsets = PackedFloat32Array([0.0, 0.3, 0.7, 1.0])
-	ramp.colors = PackedColorArray([Color(2.0, 2.6, 0.8, 0.0), Color(2.0, 2.6, 0.8, 1.0), Color(2.0, 2.6, 0.8, 1.0), Color(2.0, 2.6, 0.8, 0.0)])
-	flies.color_ramp = ramp
-	add_child(flies)
+	var look := Atmosphere.new()
+	look.setup(atmosphere, Rect2(Vector2(used.position) * tile_size, Vector2(used.size) * tile_size), _ground, fireflies)
+	add_child(look)
+	move_child(look, _ground.get_index() + 1)

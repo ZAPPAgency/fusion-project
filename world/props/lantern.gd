@@ -1,10 +1,12 @@
 @tool
 class_name Lantern
 extends StaticBody2D
-## Lanterne sur poteau : éclaire les alentours d'une lumière chaude qui vacille.
+## Lanterne sur poteau : éclaire les alentours d'une lumière chaude qui vacille ;
+## quelques papillons de nuit tournent autour (pas en qualité basse).
 
 var _light: PointLight2D
 var _time := 0.0
+var _moths: CPUParticles2D
 
 
 func _ready() -> void:
@@ -23,6 +25,37 @@ func _ready() -> void:
 	_light.texture_scale = 2.2
 	_light.position = Vector2(0, -38)
 	add_child(_light)
+	_make_moths()
+	Settings.quality_changed.connect(_make_moths)
+
+
+func _make_moths() -> void:
+	if _moths:
+		_moths.queue_free()
+		_moths = null
+	if Settings.quality == Settings.Quality.LOW:
+		return
+	_moths = CPUParticles2D.new()
+	_moths.material = FxLibrary.unshaded_material()
+	_moths.position = Vector2(0, -40)
+	_moths.z_index = 2
+	_moths.amount = Settings.particles(4)
+	_moths.lifetime = 3.0
+	_moths.preprocess = 3.0
+	_moths.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
+	_moths.emission_sphere_radius = 9.0
+	_moths.gravity = Vector2.ZERO
+	_moths.spread = 180.0
+	_moths.initial_velocity_min = 2.0
+	_moths.initial_velocity_max = 6.0
+	_moths.orbit_velocity_min = 0.25  # tournent autour de la flamme
+	_moths.orbit_velocity_max = 0.6
+	var ramp := Gradient.new()
+	ramp.offsets = PackedFloat32Array([0.0, 0.2, 0.8, 1.0])
+	var wing := Color(1.5, 1.3, 1.0)
+	ramp.colors = PackedColorArray([Color(wing, 0.0), Color(wing, 0.9), Color(wing, 0.9), Color(wing, 0.0)])
+	_moths.color_ramp = ramp
+	add_child(_moths)
 
 
 func _process(delta: float) -> void:

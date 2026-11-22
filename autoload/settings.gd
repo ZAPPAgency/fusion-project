@@ -1,8 +1,13 @@
 extends Node
-## Réglages du joueur : difficulté, fenêtres de timing des QTE, latence, langue, plein écran.
-## Sauvegardés dans user://settings.cfg.
+## Réglages du joueur : difficulté, fenêtres de timing des QTE, latence, langue, plein écran,
+## qualité des effets. Sauvegardés dans user://settings.cfg.
+
+signal quality_changed
 
 enum Difficulty { EASY, NORMAL, HARD }
+## Qualité des effets du décor (brume, rayons de lune, particules). Le combat et ses effets
+## d'impact restent identiques ; seul le décor s'allège pour les petites machines.
+enum Quality { LOW, MEDIUM, HIGH }
 
 const SETTINGS_PATH := "user://settings.cfg"
 
@@ -27,6 +32,9 @@ const CUES := {
 }
 
 const DIFFICULTY_NAMES := ["DIFF_EASY", "DIFF_NORMAL", "DIFF_HARD"]
+const QUALITY_NAMES := ["QUALITY_LOW", "QUALITY_MEDIUM", "QUALITY_HIGH"]
+## Part des particules du décor gardée à chaque qualité.
+const PARTICLE_FACTOR := [0.35, 0.7, 1.0]
 
 var difficulty := Difficulty.NORMAL
 
@@ -35,6 +43,11 @@ var difficulty := Difficulty.NORMAL
 var latency_offset_ms := 0
 
 var fullscreen := false
+
+## Par défaut : moyenne dans un navigateur (souvent un ordinateur portable), haute sinon.
+var quality := Quality.MEDIUM if OS.has_feature("web") else Quality.HIGH
+
+var _toast: CanvasLayer
 
 var language := "fr":
 	set(value):
@@ -54,6 +67,45 @@ func _input(event: InputEvent) -> void:
 		fullscreen = not fullscreen
 		apply_window()
 		save_settings()
+	elif event.is_action_pressed("graphics_quality"):
+		cycle_quality()
+		_show_toast(tr("QUALITY_LABEL").format({"name": quality_name()}))
+
+
+func quality_name() -> String:
+	return tr(QUALITY_NAMES[quality])
+
+
+func cycle_quality() -> void:
+	quality = (quality + 1) % Quality.size() as Quality
+	save_settings()
+	quality_changed.emit()
+
+
+## Nombre de particules d'un effet de décor selon la qualité (au moins 1).
+func particles(amount: int) -> int:
+	return maxi(1, roundi(amount * PARTICLE_FACTOR[quality]))
+
+
+## Petit message en bas de l'écran (ex. après F3), qui s'efface tout seul.
+func _show_toast(text: String) -> void:
+	if _toast:
+		_toast.queue_free()
+	_toast = CanvasLayer.new()
+	_toast.layer = 90
+	add_child(_toast)
+	var label := Label.new()
+	label.text = text
+	label.size = Vector2(640, 20)
+	label.position = Vector2(0, 326)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 10)
+	label.add_theme_color_override("font_outline_color", Color.BLACK)
+	label.add_theme_constant_override("outline_size", 4)
+	_toast.add_child(label)
+	var tween := label.create_tween()
+	tween.tween_interval(1.2)
+	tween.tween_property(label, "modulate:a", 0.0, 0.5)
 
 
 ## Plein écran, ou la plus grande fenêtre (multiple de 640×360) qui tient dans l'écran.
@@ -102,6 +154,7 @@ func save_settings() -> void:
 	config.set_value("game", "latency_offset_ms", latency_offset_ms)
 	config.set_value("game", "language", language)
 	config.set_value("display", "fullscreen", fullscreen)
+	config.set_value("display", "quality", quality)
 	config.save(SETTINGS_PATH)
 
 
@@ -113,3 +166,4 @@ func _load_settings() -> void:
 	latency_offset_ms = config.get_value("game", "latency_offset_ms", latency_offset_ms)
 	language = config.get_value("game", "language", language)
 	fullscreen = config.get_value("display", "fullscreen", fullscreen)
+	quality = clampi(config.get_value("display", "quality", quality), 0, Quality.size() - 1) as Quality

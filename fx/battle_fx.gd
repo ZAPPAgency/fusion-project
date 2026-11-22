@@ -7,10 +7,12 @@ extends Node2D
 
 const AMBIENT := Color(0.62, 0.66, 0.85)  ## Teinte de nuit appliquée à la scène
 const SCREEN_SIZE := Vector2(640, 360)
+const MOON_ENERGY := 0.45
 
 @export var camera: BattleCamera
 
 var _screen: ShaderMaterial
+var _moon_light: PointLight2D
 var _hit_stop_end_ms := 0
 var _shock_tween: Tween
 var _aberration_tween: Tween
@@ -119,10 +121,16 @@ func _make_screen_layer() -> void:
 
 func _make_ambient_lights() -> void:
 	_ambient_light(Vector2(170, 250), Color(1.0, 0.72, 0.45), 0.55, 4.0)  # lueur chaude côté héros
-	_ambient_light(Vector2(480, 220), Color(0.55, 0.65, 1.0), 0.45, 4.5)  # lune côté ennemis
+	_moon_light = _ambient_light(Vector2(480, 220), Color(0.55, 0.65, 1.0), MOON_ENERGY, 4.5)  # lune côté ennemis
 
 
-func _ambient_light(at: Vector2, color: Color, energy: float, size: float) -> void:
+## Un nuage passe devant la lune (0 = ciel dégagé, 1 = lune cachée) : sa lumière baisse.
+func set_moon_cover(cover: float) -> void:
+	if _moon_light:
+		_moon_light.energy = MOON_ENERGY * (1.0 - cover * 0.45)
+
+
+func _ambient_light(at: Vector2, color: Color, energy: float, size: float) -> PointLight2D:
 	var light := PointLight2D.new()
 	light.texture = FxLibrary.light_texture()
 	light.position = at
@@ -130,6 +138,7 @@ func _ambient_light(at: Vector2, color: Color, energy: float, size: float) -> vo
 	light.energy = energy
 	light.texture_scale = size
 	add_child(light)
+	return light
 
 
 func _tween_vignette(color: Color, amount: float) -> void:

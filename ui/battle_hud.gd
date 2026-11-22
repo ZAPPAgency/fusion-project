@@ -55,6 +55,7 @@ func _ready() -> void:
 	_difficulty.modulate = Color(1, 1, 1, 0.7)
 	root.add_child(_difficulty)
 	show_difficulty()
+	Settings.quality_changed.connect(show_difficulty)
 
 	action_menu = ActionMenu.new()
 	action_menu.position = Vector2(8, 290)
@@ -146,7 +147,7 @@ func show_hint(text: String) -> void:
 
 
 func show_difficulty() -> void:
-	_difficulty.text = tr("DIFFICULTY_LABEL").format({"name": Settings.difficulty_name()})
+	_difficulty.text = tr("DIFFICULTY_LABEL").format({"name": Settings.difficulty_name(), "quality": Settings.quality_name()})
 
 
 ## Fin de combat : titre (Victoire / Défaite) et détails (gains, niveaux...).

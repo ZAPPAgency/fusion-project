@@ -16,6 +16,7 @@ const KEYS := {
 	"menu": [KEY_TAB],
 	"switch_leader": [KEY_R],
 	"fullscreen": [KEY_F11],
+	"graphics_quality": [KEY_F3],
 }
 
 const PAD_BUTTONS := {
