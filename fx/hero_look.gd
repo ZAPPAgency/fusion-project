@@ -6,8 +6,8 @@ extends Node2D
 ## - forme ultime (aura_level 2) : aura en pixel art liée à l'élément du héros, comme les auras
 ##   des jeux en ligne : ailes, motif au sol, particules et auréole.
 ##     lumière (Aldric) : ailes d'ange, cercle de runes, rayons qui montent, auréole dorée ;
-##     feu (Ysolde) : spirale de flammes qui monte en s'enroulant autour d'elle (en boucle),
-##       petit anneau de flammes au sol, braises ;
+##     feu (Ysolde) : brasier pixel art qui l'enveloppe (PixelFire), spirale de flammes qui
+##       monte en s'enroulant autour d'elle (en boucle), braises ;
 ##     foudre (Fenn) : ailes d'énergie, éclairs qui crépitent, anneau électrique.
 ## Ce nœud se place derrière le sprite ; `front` (devant le sprite) dessine ce qui passe
 ## devant le corps. Utiliser HeroLook.attach(). L'origine est aux pieds du héros.
@@ -40,6 +40,7 @@ var _bolt_timer := 0.0
 var _spawn_timer := 0.0
 var _noise := FastNoiseLite.new()
 var _rng := RandomNumberGenerator.new()
+var _fire: PixelFire  ## Brasier de la forme ultime de feu
 
 
 ## Ajoute l'apparence du stade autour de `sprite` (même parent) : aura derrière, calque devant.
@@ -107,7 +108,11 @@ func _ready() -> void:
 	add_child(_glow)
 	if stage.aura_level == 1:
 		add_child(_make_sparks())
-	elif stage.aura_element != HeroStage.AuraElement.FIRE:  # le feu a sa spirale à la place des ailes
+	elif stage.aura_element == HeroStage.AuraElement.FIRE:  # le feu a son brasier à la place des ailes
+		_fire = PixelFire.new(Vector2i(roundi(body_size.x * 1.5) + 10, roundi(body_size.y * 1.15)))
+		add_child(_fire.back)
+		front.add_child(_fire.front)
+	else:
 		_make_wings()
 
 
@@ -117,6 +122,8 @@ func _process(delta: float) -> void:
 	if stage.aura_level >= 2:
 		_update_wings()
 		_update_particles(delta)
+		if _fire:
+			_fire.update(delta)
 	queue_redraw()
 	front.queue_redraw()
 
@@ -225,7 +232,6 @@ func _draw() -> void:
 			_draw_rune_ring(self, true)
 			_draw_beams(self)
 		HeroStage.AuraElement.FIRE:
-			_draw_flame_ring(self, true)
 			_draw_fire_spiral(self, true)
 		HeroStage.AuraElement.LIGHTNING:
 			_draw_electric_ring(self, true)
@@ -241,7 +247,6 @@ func draw_front(canvas: CanvasItem) -> void:
 			_draw_motes(canvas)
 			_draw_halo(canvas)
 		HeroStage.AuraElement.FIRE:
-			_draw_flame_ring(canvas, false)
 			_draw_fire_spiral(canvas, false)
 			_draw_motes(canvas)
 		HeroStage.AuraElement.LIGHTNING:
@@ -295,22 +300,6 @@ func _draw_beams(canvas: CanvasItem) -> void:
 			_pixel(canvas, Vector2(beam.x, -y), Color(LIGHT_GOLD, alpha))
 			if y % 2 == 0:
 				_pixel(canvas, Vector2(beam.x, -y), Color(LIGHT_WHITE, alpha * 0.5))
-
-
-## Feu : flammes en pixels tout autour des pieds, hauteur animée par du bruit.
-func _draw_flame_ring(canvas: CanvasItem, back: bool) -> void:
-	var radius := _ground_radius()
-	var columns := int(radius.x * 2.4)
-	for i in columns:
-		var angle := TAU * i / columns
-		if (sin(angle) < 0.0) != back:
-			continue
-		var base := _ground_point(angle, 1.0).floor()
-		var flicker := (_noise.get_noise_2d(i * 9.0, _time * 60.0) + 1.0) * 0.5
-		var height := int(1.0 + flicker * (5.0 if back else 3.0))  # discret : la spirale est l'effet principal
-		for y in height:
-			var ramp_index := mini(int(float(y) / height * FIRE_RAMP.size()), FIRE_RAMP.size() - 1)
-			_pixel(canvas, base + Vector2(0, -y), FIRE_RAMP[ramp_index])
 
 
 ## Foudre : anneau en pointillés dont des pixels s'allument au hasard.
