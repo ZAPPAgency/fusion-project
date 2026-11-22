@@ -11,7 +11,7 @@ enum Tab { UPGRADE, FUSION, EVOLVE, CRAFT, HEROES }
 
 const TAB_KEYS := ["FORGE_TAB_UPGRADE", "FORGE_TAB_FUSION", "FORGE_TAB_EVOLVE", "FORGE_TAB_CRAFT", "FORGE_TAB_HEROES"]
 const GRID_COLUMNS := 4
-const LIST_SIZE := Vector2(318, 280)
+const LIST_SIZE := Vector2(318, 266)
 const RED := Color(1.0, 0.45, 0.4)
 
 var _tabs: HBoxContainer
@@ -103,16 +103,25 @@ func _show_tab(tab: Tab, keep_focus_on: Variant = null) -> void:
 	_list_buttons.clear()
 	match tab:
 		Tab.UPGRADE:
-			_fill_card_list(_sorted(GameState.cards), _describe_upgrade)
+			# Les cartes qu'on peut encore améliorer d'abord, celles au rang maximum à la fin.
+			var cards := _sorted(GameState.cards)
+			var upgradable := cards.filter(func(card: CardInstance) -> bool: return not card.is_max_rank())
+			var maxed := cards.filter(func(card: CardInstance) -> bool: return card.is_max_rank())
+			_fill_card_list(upgradable + maxed, _describe_upgrade)
 		Tab.FUSION:
 			_fill_recipe_list(false)
 		Tab.EVOLVE:
-			_fill_card_list(_sorted(GameState.cards.filter(func(card: CardInstance) -> bool: return card.data.evolves_into != null)), _describe_evolution)
+			# Les cartes prêtes à évoluer (rang maximum) d'abord.
+			var evolving := _sorted(GameState.cards.filter(func(card: CardInstance) -> bool: return card.data.evolves_into != null))
+			var ready := evolving.filter(func(card: CardInstance) -> bool: return card.is_max_rank())
+			var later := evolving.filter(func(card: CardInstance) -> bool: return not card.is_max_rank())
+			_fill_card_list(ready + later, _describe_evolution)
 		Tab.CRAFT:
 			_fill_recipe_list(true)
 		Tab.HEROES:
 			_fill_hero_list()
 	_back = _focus_tabs
+	_left.add_child(UiTheme.label(tr("FORGE_HINT"), UiTheme.DIM, 8))
 	if _list_buttons.is_empty():
 		_left.add_child(UiTheme.label(tr("FORGE_NOTHING"), UiTheme.DIM))
 		_focus_tabs()

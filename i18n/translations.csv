@@ -205,7 +205,7 @@ FORGE_NO_EVOLUTION,Cette carte n'évolue pas.,This card does not evolve.
 FORGE_MISSING,Manquante,Missing
 FORGE_COST,Coût,Cost
 FORGE_NOTHING,Rien ici pour l'instant.,Nothing here yet.
-FORGE_HINT,[Espace] Choisir    [Échap] Retour,[Space] Select    [Esc] Back
+FORGE_HINT,[Flèches] Se déplacer   [Espace] Choisir   [Échap] Retour / onglets,[Arrows] Move   [Space] Select   [Esc] Back / tabs
 FORGE_RANK_UP,Rang {rank} !,Rank {rank}!
 FORGE_NEW_CARD,Nouvelle carte !,New card!
 FORGE_CARD_EVOLVED,Évolution !,Evolution!
