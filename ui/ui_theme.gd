@@ -56,6 +56,7 @@ static func button(text: String, on_pressed: Callable, enabled := true) -> Butto
 	result.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	result.disabled = not enabled
 	result.pressed.connect(on_pressed)
+	UiFeedback.attach(result)  # petit saut à la sélection, tremblement au choix
 	return result
 
 

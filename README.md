@@ -14,6 +14,7 @@
 | Parade | E | RB |
 | Esquive | A (AZERTY) / Q (QWERTY) | LB |
 | Menu | Tab | Start |
+| Changer de héros sur la carte | R | Y |
 | Plein écran | F11 (Ctrl+Cmd+F sur Mac) | — |
 
 En combat : F1 change la difficulté, F2 calibre la latence.

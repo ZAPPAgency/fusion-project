@@ -14,6 +14,7 @@ const KEYS := {
 	"parry": [KEY_E],
 	"dodge": [KEY_Q],
 	"menu": [KEY_TAB],
+	"switch_leader": [KEY_R],
 	"fullscreen": [KEY_F11],
 }
 
@@ -27,6 +28,7 @@ const PAD_BUTTONS := {
 	"parry": [JOY_BUTTON_RIGHT_SHOULDER],
 	"dodge": [JOY_BUTTON_LEFT_SHOULDER],
 	"menu": [JOY_BUTTON_START],
+	"switch_leader": [JOY_BUTTON_Y],
 }
 
 ## Stick gauche : [axe, direction].
@@ -46,6 +48,7 @@ const PAD_NAMES := {
 	JOY_BUTTON_LEFT_SHOULDER: "LB",
 	JOY_BUTTON_RIGHT_SHOULDER: "RB",
 	JOY_BUTTON_START: "Start",
+	JOY_BUTTON_Y: "Y",
 }
 
 

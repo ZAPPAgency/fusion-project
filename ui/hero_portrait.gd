@@ -34,6 +34,16 @@ func refresh(stage_index := -1) -> void:
 	look = HeroLook.attach(sprite, stage, body)
 
 
+## Joue une animation une fois (ex. "attack1"), puis revient au repos.
+func play_once(anim: StringName) -> void:
+	if not sprite.sprite_frames.has_animation(anim):
+		return
+	sprite.play(anim)
+	await sprite.animation_finished
+	if is_instance_valid(sprite):
+		sprite.play(&"idle")
+
+
 ## Fait virer le sprite au blanc (0 à 1), pour la cinématique d'évolution.
 func set_flash(amount: float) -> void:
 	(sprite.material as ShaderMaterial).set_shader_parameter("flash_color", Color.WHITE)

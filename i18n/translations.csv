@@ -216,3 +216,5 @@ FORGE_NEW_SKILL,Nouvelle compétence : {skill},New skill: {skill}
 FORGE_HERO_EVOLVED,{hero} devient {title} !,{hero} becomes {title}!
 FORGE_CONTINUE,[Espace] Continuer,[Space] Continue
 MENU_MATERIALS,Matériaux,Materials
+TEAM_LEADER,Marche en tête sur la carte,Walks in front on the map
+TEAM_HINT,[Espace] Marcher avec ce héros    Sur la carte : [{key}] change de héros,[Space] Walk with this hero    On the map: [{key}] switches hero

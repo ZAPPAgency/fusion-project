@@ -35,6 +35,7 @@ const SAVE_VERSION := 2
 
 var party: Array[CombatantData] = []  ## Fiches de base des héros (dans l'ordre de l'équipe)
 var heroes: Array[HeroProgress] = []  ## Progression de chaque héros (même ordre)
+var leader_index := 0  ## Héros avec lequel on marche sur la carte
 var gold := 0
 var inventory := {}  # id d'objet consommable (StringName) -> quantité
 var cards: Array[CardInstance] = []  ## Toutes les cartes du joueur, équipées ou non
@@ -69,6 +70,7 @@ func new_game() -> void:
 		party.append(data)
 		heroes.append(HeroProgress.new(data))
 	gold = START_GOLD
+	leader_index = 0
 	inventory = {&"potion": 3, &"ether": 1}
 	cards.clear()
 	next_card_uid = 1
@@ -121,6 +123,16 @@ func progress_of(hero: CombatantData) -> HeroProgress:
 		if progress.data.id == hero.id:
 			return progress
 	return null
+
+
+## Héros affiché sur la carte.
+func leader() -> HeroProgress:
+	return heroes[leader_index]
+
+
+## Le héros suivant prend la tête (touche R / bouton Y sur la carte).
+func cycle_leader() -> void:
+	leader_index = (leader_index + 1) % heroes.size()
 
 
 func heal_party() -> void:
@@ -308,6 +320,7 @@ func to_dict() -> Dictionary:
 	return {
 		"version": SAVE_VERSION,
 		"test_mode": test_mode,
+		"leader": leader_index,
 		"heroes": heroes_saved,
 		"gold": gold,
 		"inventory": _string_keys(inventory),
@@ -341,6 +354,7 @@ func load_dict(saved: Dictionary) -> void:
 	inventory = _name_keys(saved.get("inventory", {}))
 	materials = _name_keys(saved.get("materials", {}))
 	test_mode = saved.get("test_mode", false)
+	leader_index = clampi(int(saved.get("leader", 0)), 0, heroes.size() - 1)
 	current_map = saved.get("map", START_MAP)
 	var position = saved.get("position")
 	player_position = Vector2(position[0], position[1]) if position != null else null

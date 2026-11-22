@@ -25,6 +25,7 @@ func _init(card: CardInstance = null, locked_level := 0, count := 1) -> void:
 	outline.border_color = UiTheme.GOLD
 	add_theme_stylebox_override("focus", outline)
 	focus_entered.connect(func() -> void: focused.emit(view.card))
+	UiFeedback.attach(self, view, true)  # la carte saute quand on la sélectionne, tremble quand on la choisit
 	if count > 1:
 		var badge := Label.new()
 		badge.text = "x%d" % count

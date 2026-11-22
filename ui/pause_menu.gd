@@ -68,6 +68,7 @@ func _ready() -> void:
 
 
 func close() -> void:
+	get_tree().call_group("player", "refresh_look")  # le héros en tête a peut-être changé
 	get_tree().paused = false
 	FxLibrary.set_scene_glow(get_tree(), true)
 	closed.emit()
@@ -99,6 +100,9 @@ func _preview_tab(index: int) -> void:
 	_current_tab = index
 	_back = close
 	_pages[index].call(false)
+	# Petit fondu de la nouvelle page.
+	_content.modulate.a = 0.0
+	_content.create_tween().tween_property(_content, "modulate:a", 1.0, 0.12)
 
 
 ## Espace sur un onglet : on entre dans la page (s'il y a quelque chose à choisir).
@@ -113,10 +117,50 @@ func _refresh_gold() -> void:
 
 # --- Équipe ---------------------------------------------------------------------
 
-func _show_team(_enter := false) -> void:
+## Équipe : un portrait animé par héros. Espace : ce héros marche en tête sur la carte.
+func _show_team(enter := false, focus_index := 0) -> void:
 	UiTheme.clear(_content)
-	for progress in GameState.heroes:
-		_content.add_child(_hero_card(progress))
+	var rows: Array[Button] = []
+	for i in GameState.heroes.size():
+		rows.append(_team_row(GameState.heroes[i], i))
+		_content.add_child(rows[i])
+	_content.add_child(UiTheme.label(tr("TEAM_HINT").format({"key": Controls.prompt("switch_leader")}), UiTheme.DIM, 8))
+	if enter:
+		_back = _focus_tabs
+		rows[focus_index].grab_focus()
+
+
+func _team_row(progress: HeroProgress, index: int) -> Button:
+	var row := Button.new()
+	row.custom_minimum_size = Vector2(450, 66)
+	row.pressed.connect(_choose_leader.bind(index))
+	UiFeedback.attach(row)
+	var line := HBoxContainer.new()
+	line.position = Vector2(8, 2)
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(line)
+	var portrait_box := Control.new()
+	portrait_box.custom_minimum_size = Vector2(64, 62)
+	portrait_box.clip_contents = true  # les ailes ne débordent pas sur le texte
+	line.add_child(portrait_box)
+	var portrait := HeroPortrait.new(progress)
+	portrait.position = Vector2(32, 58)
+	portrait_box.add_child(portrait)
+	# Sélectionné : le héros fait son attaque, comme pour dire « présent ! ».
+	row.focus_entered.connect(func() -> void: portrait.play_once(&"attack1"))
+	var info := _hero_card(progress)
+	if index == GameState.leader_index:
+		info.add_child(UiTheme.label(tr("TEAM_LEADER"), UiTheme.GOLD, 8))
+	line.add_child(info)
+	return row
+
+
+func _choose_leader(index: int) -> void:
+	GameState.leader_index = index
+	AudioManager.play_cue()
+	_show_team(true, index)
+	# La page est reconstruite : on fait trembler la nouvelle ligne une fois placée.
+	UiFeedback.shake.call_deferred(_content.get_child(index))
 
 
 func _hero_card(progress: HeroProgress) -> Control:
@@ -175,7 +219,8 @@ func _preview_deck(progress: HeroProgress) -> void:
 
 
 ## Les 5 emplacements du héros (verrouillés tant que son niveau est trop bas).
-func _show_card_slots(progress: HeroProgress, focus_slot := 0) -> void:
+## Renvoie le bouton de l'emplacement sélectionné.
+func _show_card_slots(progress: HeroProgress, focus_slot := 0) -> CardButton:
 	UiTheme.clear(_content)
 	_content.add_child(_hero_card(progress))
 	var row := HBoxContainer.new()
@@ -189,7 +234,9 @@ func _show_card_slots(progress: HeroProgress, focus_slot := 0) -> void:
 		row.add_child(button)
 	_add_details()
 	_back = _show_card_heroes.bind(true, GameState.heroes.find(progress))
-	row.get_child(focus_slot).grab_focus()
+	var focused: CardButton = row.get_child(focus_slot)
+	focused.grab_focus()
+	return focused
 
 
 ## Cartes de la collection qui peuvent aller dans cet emplacement.
@@ -226,7 +273,8 @@ func _show_card_choices(progress: HeroProgress, slot: int) -> void:
 func _equip_card(progress: HeroProgress, slot: int, card: CardInstance) -> void:
 	GameState.equip_card(progress, slot, card)
 	AudioManager.play_cue()
-	_show_card_slots(progress, slot)
+	var button := _show_card_slots(progress, slot)
+	UiFeedback.shake.call_deferred(button.view)  # la carte posée tremble dans son emplacement
 
 
 # --- Collection ---------------------------------------------------------------------

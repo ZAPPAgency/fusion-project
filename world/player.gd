@@ -1,7 +1,8 @@
 class_name Player
 extends CharacterBody2D
 ## Le joueur sur la carte : déplacement 8 directions, interaction (Espace), caméra qui suit.
-## Le personnage affiché est le chef de l'équipe (Aldric), avec l'apparence de son stade d'évolution.
+## Le personnage affiché est le héros en tête (GameState.leader), avec l'apparence de son stade
+## d'évolution. R / bouton Y : le héros suivant prend la tête.
 
 const SPEED := 120.0
 const INTERACT_RANGE := 40.0
@@ -24,12 +25,8 @@ func _ready() -> void:
 	collision.position = Vector2(0, -4)
 	add_child(collision)
 
-	var leader := GameState.party[0]
 	_sprite = AnimatedSprite2D.new()
-	_sprite.sprite_frames = leader.sprite_frames
 	_sprite.centered = false
-	_sprite.offset = leader.sprite_frames.get_meta("feet_offset", Vector2.ZERO)
-	_sprite.play(&"idle")
 	add_child(_sprite)
 	refresh_look()
 
@@ -39,16 +36,34 @@ func _ready() -> void:
 	add_child(_camera)
 
 
-## Applique l'apparence du stade d'évolution du chef (appelé aussi après une évolution à la forge).
+## Affiche le héros en tête avec l'apparence de son stade d'évolution
+## (appelé aussi après un changement de héros ou une évolution à la forge).
 func refresh_look() -> void:
-	var leader := GameState.heroes[0]
+	var leader := GameState.leader()
+	var facing := signf(_sprite.scale.x) if _sprite.scale.x != 0.0 else 1.0
+	_sprite.sprite_frames = leader.data.sprite_frames
+	_sprite.offset = leader.data.sprite_frames.get_meta("feet_offset", Vector2.ZERO)
+	_sprite.play(&"idle")
 	var stage := leader.stage_data() if leader.stage > 0 else null
 	_sprite.material = HeroLook.make_material(stage)
-	_sprite.scale = Vector2.ONE * (stage.sprite_scale if stage else 1.0)
+	var size := leader.data.sprite_scale * (stage.sprite_scale if stage else 1.0)
+	_sprite.scale = Vector2(facing, 1.0) * size
 	if _look:
 		_look.queue_free()
-	var body_size: Vector2 = leader.data.sprite_frames.get_meta("body_size", Vector2(20, 40)) * _sprite.scale
+	var body_size: Vector2 = leader.data.sprite_frames.get_meta("body_size", Vector2(20, 40)) * size
 	_look = HeroLook.attach(_sprite, stage, body_size)
+
+
+## Le héros suivant prend la tête, avec un petit nuage de lumière.
+func switch_leader() -> void:
+	GameState.cycle_leader()
+	refresh_look()
+	FxLibrary.burst(get_parent(), global_position + Vector2(0, -14), &"arcane", Vector2.UP, 0.8)
+	AudioManager.play_cue()
+	var size := absf(_sprite.scale.y)
+	var tween := create_tween()
+	tween.tween_property(_sprite, "scale:y", size * 1.2, 0.06)
+	tween.tween_property(_sprite, "scale:y", size, 0.15).set_trans(Tween.TRANS_BACK)
 
 
 ## Empêche la caméra de montrer l'extérieur de la carte.
@@ -88,6 +103,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("confirm") and not _is_blocked() and _highlighted:
 		get_viewport().set_input_as_handled()
 		_highlighted.interact(self)
+	elif event.is_action_pressed("switch_leader") and not _is_blocked():
+		get_viewport().set_input_as_handled()
+		switch_leader()
 
 
 ## Interaction possible avec l'objet le plus proche à portée.

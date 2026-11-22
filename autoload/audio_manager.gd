@@ -25,6 +25,11 @@ func play_cue() -> void:
 	_play("cue", 0.06, func(t: float) -> float: return sin(TAU * 1500.0 * t) * exp(-t * 60.0), -10.0)
 
 
+## Sélection dans un menu : « tic » très court et discret.
+func play_tick() -> void:
+	_play("tick", 0.03, func(t: float) -> float: return sin(TAU * 2400.0 * t) * exp(-t * 160.0) * 0.5, -20.0)
+
+
 ## Coup qui porte : choc sourd + bruit.
 func play_hit() -> void:
 	_play("hit", 0.18, func(t: float) -> float:

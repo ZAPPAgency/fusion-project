@@ -123,3 +123,17 @@ func test_old_save_equipment_becomes_cards() -> void:
 	assert_eq(_count_cards(&"cape_voyage"), 2)
 	assert_eq(_aldric().slots[0].data.id, &"seve_vitale", "la carte de départ reste")
 	assert_eq(_aldric().slots[1].data.id, &"epee_acier", "l'arme portée devient une carte équipée")
+
+
+func test_leader_cycles_and_is_saved() -> void:
+	assert_eq(GameState.leader(), _aldric())
+	GameState.cycle_leader()
+	GameState.cycle_leader()
+	assert_eq(GameState.leader().data.id, &"fenn")
+	GameState.cycle_leader()
+	assert_eq(GameState.leader_index, 0, "après le dernier héros, on revient au premier")
+	GameState.leader_index = 1
+	var saved := GameState.to_dict()
+	GameState.new_game()
+	GameState.load_dict(saved)
+	assert_eq(GameState.leader().data.id, &"ysolde")
