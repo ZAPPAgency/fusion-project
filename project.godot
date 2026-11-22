@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="Valbrune"
+config/name="Fusion Project"
 run/main_scene="res://ui/title_screen.tscn"
 config/features=PackedStringArray("4.8", "Forward Plus")
 

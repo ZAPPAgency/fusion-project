@@ -1,8 +1,8 @@
-# Valbrune — La Cloche Fêlée
+# Fusion Project
 
-RPG tour par tour en pixel art, dans un univers médiéval-fantasy. Les combats se jouent au timing : appuie au moment de l'impact pour renforcer tes coups, pare ou esquive ceux des ennemis.
+**Valbrune — La Cloche Fêlée** : RPG tour par tour en pixel art, dans un univers médiéval-fantasy. Les combats se jouent au timing : appuie au moment de l'impact pour renforcer tes coups, pare ou esquive ceux des ennemis.
 
-**Jouer dans le navigateur : https://nkalten.github.io/valbrune/**
+**Jouer dans le navigateur : https://zappagency.github.io/fusion-project/**
 
 ## Commandes
 
