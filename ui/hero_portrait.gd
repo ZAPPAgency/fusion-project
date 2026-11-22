@@ -10,6 +10,13 @@ var look: HeroLook
 var _stage_index := -1
 
 
+## Zoom pour que le corps du héros fasse `height` pixels de haut
+## (les sprites n'ont pas tous la même taille : Ysolde est bien plus grande que Fenn).
+static func zoom_to_fit(hero: HeroProgress, height: float) -> float:
+	var body: Vector2 = hero.data.sprite_frames.get_meta("body_size", Vector2(20, 40))
+	return height / (body.y * hero.data.sprite_scale)
+
+
 func _init(hero: HeroProgress, zoom := 1.0) -> void:
 	progress = hero
 	scale = Vector2.ONE * zoom

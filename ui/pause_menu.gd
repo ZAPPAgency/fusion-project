@@ -143,7 +143,7 @@ func _team_row(progress: HeroProgress, index: int) -> Button:
 	portrait_box.custom_minimum_size = Vector2(64, 62)
 	portrait_box.clip_contents = true  # les ailes ne débordent pas sur le texte
 	line.add_child(portrait_box)
-	var portrait := HeroPortrait.new(progress)
+	var portrait := HeroPortrait.new(progress, HeroPortrait.zoom_to_fit(progress, 50.0))
 	portrait.position = Vector2(32, 58)
 	portrait_box.add_child(portrait)
 	# Sélectionné : le héros fait son attaque, comme pour dire « présent ! ».
@@ -221,8 +221,8 @@ func _hero_pick_row(progress: HeroProgress) -> Button:
 	portrait_box.custom_minimum_size = Vector2(44, 40)
 	portrait_box.clip_contents = true  # les ailes ne débordent pas sur le texte
 	line.add_child(portrait_box)
-	var portrait := HeroPortrait.new(progress, 0.8)
-	portrait.position = Vector2(22, 38)
+	var portrait := HeroPortrait.new(progress, HeroPortrait.zoom_to_fit(progress, 32.0))
+	portrait.position = Vector2(22, 37)
 	portrait_box.add_child(portrait)
 	row.focus_entered.connect(func() -> void: portrait.play_once(&"attack1"))
 	var name_label := UiTheme.label("%s   %s %d" % [progress.full_title(), tr("LEVEL_SHORT"), progress.level],
