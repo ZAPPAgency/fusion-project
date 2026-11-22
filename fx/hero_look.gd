@@ -9,8 +9,10 @@ extends Node2D
 ##     feu (Ysolde) : deux rubans de feu épais qui montent en s'enroulant autour d'elle
 ##       (en boucle), braises ;
 ##     foudre (Fenn) : ailes d'énergie, éclairs qui crépitent, anneau électrique ;
-##     glas (le Gardien) : pas d'ailes ; ondes de son qui s'élargissent au sol, une cloche de
-##       bronze qui se balance au-dessus de sa tête et sonne (anneaux), notes violettes et dorées.
+##     glas (le Gardien), façon auras de Dofus, sans ailes : disque lumineux et anneau de runes
+##       au sol parcouru par deux éclats, anneaux de résonance qui montent le long du corps,
+##       colonnes de lumière violette, étincelles dorées en orbite (avec traînée), cloche
+##       spectrale qui se balance au-dessus de lui et sonne. Tout est additif : ça rayonne.
 ## Ce nœud se place derrière le sprite ; `front` (devant le sprite) dessine ce qui passe
 ## devant le corps. Utiliser HeroLook.attach(). L'origine est aux pieds du héros.
 ## Tout est dessiné sur des pixels entiers pour rester en pixel art.
@@ -30,8 +32,9 @@ const BELL_SHINE := Color(1.4, 1.15, 0.6)  # > 1 : reflets qui brillent un peu
 const BELL_DARK := Color(0.5, 0.28, 0.12)
 const BELL_SHADOW := Color(0.6, 0.35, 1.0)  # violet de la flamme du bâton
 ## Glas : durée d'une onde au sol (s), nombre d'ondes à la fois, vitesse du balancement.
-const WAVE_PERIOD := 1.8
+const WAVE_PERIOD := 2.4  ## Durée de la montée d'un anneau de résonance
 const WAVE_COUNT := 3
+const ORBIT_HEIGHTS := [0.18, 0.42, 0.66, 0.9]  ## Hauteur des étincelles en orbite (part du corps)
 const BELL_SWING_SPEED := 2.6
 ## La cloche en pixels : # = bronze, r = anneau, o = battant.
 ## Le bord gauche est éclairé, le droit dans l'ombre, la lèvre (bas) plus sombre.
@@ -122,6 +125,9 @@ func _ready() -> void:
 		return
 	material = FxLibrary.unshaded_material()
 	front.material = FxLibrary.unshaded_material()
+	if stage.aura_level >= 2 and stage.aura_element == HeroStage.AuraElement.BELL:
+		material = _additive_material()  # lumière qui s'ajoute : l'aura rayonne
+		front.material = material
 	# Halo doux derrière le corps (additif).
 	var additive := CanvasItemMaterial.new()
 	additive.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
@@ -211,11 +217,15 @@ func _spawn_particles() -> void:
 				var head := _spiral_point(strand, _spiral_progress(strand) * _spiral_height())
 				_add_mote(head, Vector2(_rng.randf_range(-6, 6), -_rng.randf_range(10, 20)), 0.8, FIRE_RAMP[_rng.randi_range(0, 1)])
 		HeroStage.AuraElement.BELL:
-			# Notes qui montent lentement depuis les ondes du sol.
-			if _rng.randf() < 0.35:
+			# Étincelles qui montent depuis l'anneau du sol, et colonnes de lumière.
+			if _rng.randf() < 0.45:
 				var angle := _rng.randf() * TAU
-				_add_mote(_ground_point(angle, _rng.randf_range(0.5, 1.0)), Vector2(_rng.randf_range(-3, 3), -_rng.randf_range(8, 15)),
-					1.5, BELL_SHADOW if _rng.randf() < 0.6 else BELL_BRONZE)
+				_add_mote(_ground_point(angle, _rng.randf_range(0.6, 1.0)), Vector2(_rng.randf_range(-2, 2), -_rng.randf_range(14, 26)),
+					1.3, BELL_SHADOW if _rng.randf() < 0.55 else BELL_BRONZE)
+			if _rng.randf() < 0.3:
+				_beams.append({"x": roundf(_rng.randf_range(-half_width * 1.1, half_width * 1.1)), "age": 0.0,
+					"life": _rng.randf_range(0.9, 1.5), "height": _rng.randf_range(body_size.y * 0.5, body_size.y * 1.05),
+					"wide": _rng.randf() < 0.35})
 		HeroStage.AuraElement.LIGHTNING:
 			if _rng.randf() < 0.5:
 				_add_mote(Vector2(_rng.randf_range(-half_width, half_width), -_rng.randf_range(0, body_size.y)),
@@ -265,7 +275,10 @@ func _draw() -> void:
 		HeroStage.AuraElement.LIGHTNING:
 			_draw_electric_ring(self, true)
 		HeroStage.AuraElement.BELL:
-			_draw_sound_waves(self, true)
+			_draw_bell_ground(self, true)
+			_draw_pillars(self)
+			_draw_resonance(self, true)
+			_draw_orbits(self, true)
 
 
 ## Ce qui passe devant le corps (appelé par le calque `front`).
@@ -286,7 +299,9 @@ func draw_front(canvas: CanvasItem) -> void:
 			_draw_motes(canvas)
 			_draw_electric_halo(canvas)
 		HeroStage.AuraElement.BELL:
-			_draw_sound_waves(canvas, false)
+			_draw_bell_ground(canvas, false)
+			_draw_resonance(canvas, false)
+			_draw_orbits(canvas, false)
 			_draw_motes(canvas)
 			_draw_bell(canvas)
 
@@ -498,25 +513,105 @@ func _update_bell(delta: float) -> void:
 			_add_mote(mouth, Vector2(_rng.randf_range(-14, 14), _rng.randf_range(-12, -2)), 0.6, BELL_SHINE)
 
 
-## Glas : ondes de son en pointillés qui partent des pieds et s'élargissent en s'effaçant,
-## au-dessus d'un cercle violet sombre qui tourne lentement.
-func _draw_sound_waves(canvas: CanvasItem, back: bool) -> void:
-	for i in 36:
-		var angle := TAU * i / 36 + _time * 0.4
+static func _additive_material() -> CanvasItemMaterial:
+	var additive := CanvasItemMaterial.new()
+	additive.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	additive.light_mode = CanvasItemMaterial.LIGHT_MODE_UNSHADED
+	return additive
+
+
+## Point d'une ellipse horizontale de centre `center` (angle entre 0 et PI = devant).
+static func _ellipse_point(center: Vector2, radius_x: float, angle: float) -> Vector2:
+	return center + Vector2(cos(angle) * radius_x, sin(angle) * radius_x * 0.3)
+
+
+## Glas, au sol : disque lumineux en dégradé (trois ellipses), puis un anneau de runes épais
+## parcouru par deux éclats dorés qui tournent, avec des encoches ; un anneau intérieur
+## en pointillés tourne dans l'autre sens.
+func _draw_bell_ground(canvas: CanvasItem, back: bool) -> void:
+	var radius := _ground_radius().x
+	if back:
+		var pulse := 0.85 + 0.15 * sin(_time * 2.2)
+		canvas.draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.3))
+		for step in 3:
+			canvas.draw_circle(Vector2.ZERO, radius * (1.2 - step * 0.25), Color(BELL_SHADOW * 0.5, 0.09 * pulse))
+		canvas.draw_circle(Vector2.ZERO, radius * 0.45, Color(BELL_BRONZE * 0.6, 0.1 * pulse))
+		canvas.draw_set_transform(Vector2.ZERO)
+	var count := int(radius * 6.0)
+	var sweep := _time * 1.6
+	for i in count:
+		var angle := TAU * i / count
+		if (sin(angle) < 0.0) != back:
+			continue
+		var point := _ellipse_point(Vector2.ZERO, radius, angle).floor()
+		# Deux éclats opposés font le tour de l'anneau.
+		var shine := pow(maxf(0.0, cos(angle - sweep)), 10.0) + pow(maxf(0.0, cos(angle - sweep - PI)), 10.0)
+		var color := Color(BELL_SHADOW, 0.55).lerp(Color(BELL_SHINE, 1.0), shine)
+		_pixel(canvas, point, color)
+		_pixel(canvas, point + Vector2(0, 1), Color(color, color.a * 0.45))  # épaisseur
+		if i % (count / 12) == 0:  # encoches régulières : des runes
+			_pixel(canvas, point + Vector2(0, -1), Color(BELL_BRONZE, 0.8))
+			_pixel(canvas, point + Vector2(0, -2), Color(BELL_BRONZE, 0.4))
+	var inner := int(radius * 3.0)
+	for i in inner:
+		var angle := TAU * i / inner - _time * 0.9
 		if (sin(angle) < 0.0) != back or i % 3 == 2:
 			continue
-		_pixel(canvas, _ground_point(angle, 0.75), Color(BELL_SHADOW, 0.55))
+		_pixel(canvas, _ellipse_point(Vector2.ZERO, radius * 0.62, angle).floor(), Color(BELL_BRONZE, 0.45))
+
+
+## Glas : anneaux de résonance qui partent des pieds et montent le long du corps
+## en se resserrant ; dorés en bas, violets en haut. Ils passent devant et derrière lui.
+func _draw_resonance(canvas: CanvasItem, back: bool) -> void:
 	for wave in WAVE_COUNT:
 		var progress := fmod(_time / WAVE_PERIOD + float(wave) / WAVE_COUNT, 1.0)
-		var alpha := pow(1.0 - progress, 1.5) * minf(1.0, progress * 6.0)
-		var scale_factor := 0.35 + progress * 0.95
-		var count := int(24 + 32 * scale_factor)  # plus l'onde est grande, plus elle a de points
+		var alpha := pow(sin(progress * PI), 0.8) * 0.6
+		var center := Vector2(0, -roundf(progress * body_size.y * 1.05))
+		var radius := (body_size.x * 0.62 + 6.0) * lerpf(1.15, 0.55, progress)
+		var color := BELL_BRONZE.lerp(BELL_SHADOW, progress)
+		var count := int(radius * 5.0)
 		for i in count:
 			var angle := TAU * i / count
-			if (sin(angle) < 0.0) != back or i % 4 == 3:
+			if (sin(angle) < 0.0) != back:
 				continue
-			var color := BELL_BRONZE if i % 4 != 1 else BELL_SHADOW
-			_pixel(canvas, _ground_point(angle, scale_factor), Color(color, alpha))
+			var point := _ellipse_point(center, radius, angle).floor()
+			_pixel(canvas, point, Color(color, alpha))
+			if progress < 0.55:  # épais en bas, fin en haut
+				_pixel(canvas, point + Vector2(0, 1), Color(color, alpha * 0.4))
+
+
+## Glas : colonnes de lumière violette qui montent et s'effacent, pointe dorée.
+func _draw_pillars(canvas: CanvasItem) -> void:
+	for beam in _beams:
+		var progress: float = beam.age / beam.life
+		var fade := sin(progress * PI)
+		var height: float = beam.height * minf(1.0, progress * 2.5)
+		var width := 2.0 if beam.wide else 1.0
+		for y in int(height):
+			var along := y / height
+			var color := BELL_SHADOW.lerp(BELL_BRONZE, along * along)
+			var alpha := fade * (1.0 - along) * 0.55
+			canvas.draw_rect(Rect2(beam.x, -y - 1, width, 1), Color(color, alpha))
+
+
+## Glas : étincelles dorées qui tournent autour du corps à plusieurs hauteurs, avec une traînée.
+func _draw_orbits(canvas: CanvasItem, back: bool) -> void:
+	var radius := body_size.x * 0.62 + 5.0
+	for k in ORBIT_HEIGHTS.size():
+		var direction := 1.0 if k % 2 == 0 else -1.0
+		var angle := _time * 2.1 * direction + k * 1.7
+		var height := -roundf(body_size.y * ORBIT_HEIGHTS[k] + sin(_time * 1.3 + k) * 3.0)
+		for trail in 7:
+			var a := angle - direction * trail * 0.1
+			if (sin(a) < 0.0) != back:
+				continue
+			var point := _ellipse_point(Vector2(0, height), radius, a).floor()
+			if trail == 0:
+				_pixel(canvas, point, BELL_SHINE)
+				for side in [Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
+					_pixel(canvas, point + side, Color(BELL_BRONZE, 0.6))
+			else:
+				_pixel(canvas, point, Color(BELL_BRONZE.lerp(BELL_SHADOW, trail / 6.0), 0.8 * (1.0 - trail / 7.0)))
 
 
 ## Coin haut-gauche de la cloche (centrée juste au-dessus du corps, flotte doucement).
@@ -536,6 +631,9 @@ func _bell_sway(row: int) -> float:
 func _draw_bell(canvas: CanvasItem) -> void:
 	var top := _bell_top()
 	var width: int = BELL_SHAPE[0].length()
+	var glow_center := top + Vector2(width / 2.0, BELL_SHAPE.size() * 0.55)
+	for step in 3:  # halo doré derrière la cloche (additif)
+		canvas.draw_circle(glow_center, 7.0 + step * 4.0, Color(BELL_BRONZE * 0.5, 0.08))
 	for row in BELL_SHAPE.size():
 		var line: String = BELL_SHAPE[row]
 		var left := line.find("#")
