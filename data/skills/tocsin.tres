@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Script" path="res://data/skill_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"tocsin"
+display_name = "SKILL_TOCSIN"
+target = 0
+effect = 0
+power = 2.8
+ap_cost = 5
+ap_gain = 0
+unlock_level = 1
+impact_times = PackedFloat32Array(0.5, 1.0, 1.5)
+hit_animations = Array[StringName]([&"attack1", &"attack2"])
+melee = true
+impact_fx = &"dark"

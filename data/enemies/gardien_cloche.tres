@@ -4,6 +4,7 @@
 [ext_resource type="Script" path="res://data/combatant_data.gd" id="2_ed1do"]
 [ext_resource type="Script" path="res://data/skill_data.gd" id="3_c18l6"]
 [ext_resource type="Resource" path="res://data/skills/glas_funebre.tres" id="4_e6326"]
+[ext_resource type="Resource" path="res://data/characters/gardien.tres" id="joins"]
 [ext_resource type="SpriteFrames" path="res://assets/sprites/gardien_cloche/sprite_frames.tres" id="5_ed1do"]
 
 [resource]
@@ -19,5 +20,6 @@ attack = 20
 defense = 14
 xp_reward = 150
 gold_reward = 80
+joins_as = ExtResource("joins")
 basic_attack = ExtResource("1_xvl87")
 skills = Array[ExtResource("3_c18l6")]([ExtResource("4_e6326")])

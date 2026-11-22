@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="CombatantData" format=3]
+
+[ext_resource type="Script" path="res://data/combatant_data.gd" id="1"]
+[ext_resource type="Script" path="res://data/skill_data.gd" id="2"]
+[ext_resource type="Script" path="res://data/hero_stage.gd" id="3"]
+[ext_resource type="SpriteFrames" path="res://assets/sprites/gardien_cloche/sprite_frames.tres" id="4"]
+[ext_resource type="Resource" path="res://data/skills/coup_bourdon.tres" id="5"]
+[ext_resource type="Resource" path="res://data/skills/onde_glas.tres" id="6"]
+[ext_resource type="Resource" path="res://data/skills/carillon.tres" id="7"]
+[ext_resource type="Resource" path="res://data/skills/requiem.tres" id="8"]
+[ext_resource type="Resource" path="res://data/stages/gardien_1.tres" id="9"]
+[ext_resource type="Resource" path="res://data/stages/gardien_2.tres" id="10"]
+[ext_resource type="Resource" path="res://data/stages/gardien_3.tres" id="11"]
+
+[resource]
+script = ExtResource("1")
+id = &"gardien"
+display_name = "HERO_GARDIEN"
+placeholder_color = Color(0.62, 0.45, 0.85, 1)
+sprite_frames = ExtResource("4")
+sprite_scale = 0.75
+max_hp = 125
+attack = 16
+defense = 11
+speed = 9
+hp_growth = 10.0
+attack_growth = 2.2
+defense_growth = 1.2
+speed_growth = 0.5
+basic_attack = ExtResource("5")
+skills = Array[ExtResource("2")]([ExtResource("6"), ExtResource("7"), ExtResource("8")])
+stages = Array[ExtResource("3")]([ExtResource("9"), ExtResource("10"), ExtResource("11")])

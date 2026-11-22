@@ -8,7 +8,9 @@ extends Node2D
 ##     lumière (Aldric) : ailes d'ange, cercle de runes, rayons qui montent, auréole dorée ;
 ##     feu (Ysolde) : deux rubans de feu épais qui montent en s'enroulant autour d'elle
 ##       (en boucle), braises ;
-##     foudre (Fenn) : ailes d'énergie, éclairs qui crépitent, anneau électrique.
+##     foudre (Fenn) : ailes d'énergie, éclairs qui crépitent, anneau électrique ;
+##     glas (le Gardien) : pas d'ailes ; ondes de son qui s'élargissent au sol, une cloche de
+##       bronze qui se balance au-dessus de sa tête et sonne (anneaux), notes violettes et dorées.
 ## Ce nœud se place derrière le sprite ; `front` (devant le sprite) dessine ce qui passe
 ## devant le corps. Utiliser HeroLook.attach(). L'origine est aux pieds du héros.
 ## Tout est dessiné sur des pixels entiers pour rester en pixel art.
@@ -23,6 +25,30 @@ const SPIRAL_TRAIL := 0.45
 const BOLT_CORE := Color(1.4, 1.6, 1.9)
 const BOLT_GLOW := Color(0.35, 0.75, 1.0, 0.45)
 const BOLT_DIM := Color(0.15, 0.4, 0.9, 0.45)
+const BELL_BRONZE := Color(1.0, 0.7, 0.28)
+const BELL_SHINE := Color(1.4, 1.15, 0.6)  # > 1 : reflets qui brillent un peu
+const BELL_DARK := Color(0.5, 0.28, 0.12)
+const BELL_SHADOW := Color(0.6, 0.35, 1.0)  # violet de la flamme du bâton
+## Glas : durée d'une onde au sol (s), nombre d'ondes à la fois, vitesse du balancement.
+const WAVE_PERIOD := 1.8
+const WAVE_COUNT := 3
+const BELL_SWING_SPEED := 2.6
+## La cloche en pixels : # = bronze, r = anneau, o = battant.
+## Le bord gauche est éclairé, le droit dans l'ombre, la lèvre (bas) plus sombre.
+const BELL_SHAPE := [
+	".....rrr.....",
+	".....r.r.....",
+	"....#####....",
+	"...#######...",
+	"...#######...",
+	"...#######...",
+	"...#######...",
+	"...#######...",
+	"..#########..",
+	".###########.",
+	"#############",
+	"......o......",
+]
 
 var stage: HeroStage
 var body_size: Vector2
@@ -37,6 +63,8 @@ var _motes: Array[Dictionary] = []  # particules : position, vitesse, âge, dur�
 var _beams: Array[Dictionary] = []  # rayons de lumière qui montent
 var _bolts: Array[PackedVector2Array] = []  # éclairs affichés en ce moment
 var _bolt_timer := 0.0
+var _bell_pulses: Array[float] = []  # âge de chaque anneau émis par la cloche quand elle sonne
+var _bell_side := 0.0  # sens du balancement, pour savoir quand la cloche atteint un bout
 var _spawn_timer := 0.0
 var _noise := FastNoiseLite.new()
 var _rng := RandomNumberGenerator.new()
@@ -107,8 +135,8 @@ func _ready() -> void:
 	add_child(_glow)
 	if stage.aura_level == 1:
 		add_child(_make_sparks())
-	elif stage.aura_element != HeroStage.AuraElement.FIRE:  # le feu a ses rubans à la place des ailes
-		_make_wings()
+	elif stage.aura_element in [HeroStage.AuraElement.LIGHT, HeroStage.AuraElement.LIGHTNING]:
+		_make_wings()  # le feu a ses rubans à la place, le glas sa cloche
 
 
 func _process(delta: float) -> void:
@@ -158,6 +186,8 @@ func _update_particles(delta: float) -> void:
 	for beam in _beams:
 		beam.age += delta
 	_beams = _beams.filter(func(beam: Dictionary) -> bool: return beam.age < beam.life)
+	if stage.aura_element == HeroStage.AuraElement.BELL:
+		_update_bell(delta)
 	if stage.aura_element == HeroStage.AuraElement.LIGHTNING:
 		_bolt_timer -= delta
 		if _bolt_timer <= 0.0:
@@ -180,6 +210,12 @@ func _spawn_particles() -> void:
 				var strand := _rng.randi_range(0, 1)
 				var head := _spiral_point(strand, _spiral_progress(strand) * _spiral_height())
 				_add_mote(head, Vector2(_rng.randf_range(-6, 6), -_rng.randf_range(10, 20)), 0.8, FIRE_RAMP[_rng.randi_range(0, 1)])
+		HeroStage.AuraElement.BELL:
+			# Notes qui montent lentement depuis les ondes du sol.
+			if _rng.randf() < 0.35:
+				var angle := _rng.randf() * TAU
+				_add_mote(_ground_point(angle, _rng.randf_range(0.5, 1.0)), Vector2(_rng.randf_range(-3, 3), -_rng.randf_range(8, 15)),
+					1.5, BELL_SHADOW if _rng.randf() < 0.6 else BELL_BRONZE)
 		HeroStage.AuraElement.LIGHTNING:
 			if _rng.randf() < 0.5:
 				_add_mote(Vector2(_rng.randf_range(-half_width, half_width), -_rng.randf_range(0, body_size.y)),
@@ -228,6 +264,8 @@ func _draw() -> void:
 			_draw_fire_spiral(self, true)
 		HeroStage.AuraElement.LIGHTNING:
 			_draw_electric_ring(self, true)
+		HeroStage.AuraElement.BELL:
+			_draw_sound_waves(self, true)
 
 
 ## Ce qui passe devant le corps (appelé par le calque `front`).
@@ -247,6 +285,10 @@ func draw_front(canvas: CanvasItem) -> void:
 			_draw_bolts(canvas)
 			_draw_motes(canvas)
 			_draw_electric_halo(canvas)
+		HeroStage.AuraElement.BELL:
+			_draw_sound_waves(canvas, false)
+			_draw_motes(canvas)
+			_draw_bell(canvas)
 
 
 static func _pixel(canvas: CanvasItem, at: Vector2, color: Color, size := 1.0) -> void:
@@ -440,6 +482,91 @@ func _draw_electric_halo(canvas: CanvasItem) -> void:
 		var jitter := float(hash(i + tick * 7) % 3 - 1)
 		var point := center + Vector2(round(cos(angle) * 7.0), round(sin(angle) * 2.0) + jitter)
 		_pixel(canvas, point, BOLT_CORE if hash(i * 5 + tick) % 4 == 0 else BOLT_GLOW)
+
+
+## Glas : la cloche sonne à chaque bout de son balancement (nouvel anneau, quelques notes).
+func _update_bell(delta: float) -> void:
+	for i in _bell_pulses.size():
+		_bell_pulses[i] += delta
+	_bell_pulses = _bell_pulses.filter(func(age: float) -> bool: return age < 0.7)
+	var side := signf(cos(_time * BELL_SWING_SPEED))  # change de signe aux deux bouts
+	if side != _bell_side:
+		_bell_side = side
+		_bell_pulses.append(0.0)
+		var mouth := _bell_top() + Vector2(_bell_sway(BELL_SHAPE.size()), BELL_SHAPE.size())
+		for i in 3:
+			_add_mote(mouth, Vector2(_rng.randf_range(-14, 14), _rng.randf_range(-12, -2)), 0.6, BELL_SHINE)
+
+
+## Glas : ondes de son en pointillés qui partent des pieds et s'élargissent en s'effaçant,
+## au-dessus d'un cercle violet sombre qui tourne lentement.
+func _draw_sound_waves(canvas: CanvasItem, back: bool) -> void:
+	for i in 36:
+		var angle := TAU * i / 36 + _time * 0.4
+		if (sin(angle) < 0.0) != back or i % 3 == 2:
+			continue
+		_pixel(canvas, _ground_point(angle, 0.75), Color(BELL_SHADOW, 0.55))
+	for wave in WAVE_COUNT:
+		var progress := fmod(_time / WAVE_PERIOD + float(wave) / WAVE_COUNT, 1.0)
+		var alpha := pow(1.0 - progress, 1.5) * minf(1.0, progress * 6.0)
+		var scale_factor := 0.35 + progress * 0.95
+		var count := int(24 + 32 * scale_factor)  # plus l'onde est grande, plus elle a de points
+		for i in count:
+			var angle := TAU * i / count
+			if (sin(angle) < 0.0) != back or i % 4 == 3:
+				continue
+			var color := BELL_BRONZE if i % 4 != 1 else BELL_SHADOW
+			_pixel(canvas, _ground_point(angle, scale_factor), Color(color, alpha))
+
+
+## Coin haut-gauche de la cloche (centrée juste au-dessus du corps, flotte doucement).
+func _bell_top() -> Vector2:
+	var float_y := roundf(sin(_time * 2.0) * 1.5)
+	return Vector2(-floorf(BELL_SHAPE[0].length() / 2.0), -roundf(body_size.y) - BELL_SHAPE.size() - 3 + float_y)
+
+
+## Décalage horizontal de la rangée `row` : la cloche pend de son anneau et se balance.
+## Les rangées se décalent de pixels entiers (inclinaison) pour rester en pixel art.
+func _bell_sway(row: int) -> float:
+	return roundf(sin(_time * BELL_SWING_SPEED) * row * 0.22)
+
+
+## Glas : cloche de bronze qui se balance ; le battant suit avec un peu de retard.
+## Quand elle sonne, des anneaux dorés s'élargissent autour d'elle.
+func _draw_bell(canvas: CanvasItem) -> void:
+	var top := _bell_top()
+	var width: int = BELL_SHAPE[0].length()
+	for row in BELL_SHAPE.size():
+		var line: String = BELL_SHAPE[row]
+		var left := line.find("#")
+		var right := line.rfind("#")
+		var sway := _bell_sway(row)
+		for column in width:
+			var at := top + Vector2(column + sway, row)
+			match line[column]:
+				"#":
+					var color := BELL_BRONZE
+					if column <= left + 1 and row < BELL_SHAPE.size() - 3:
+						color = BELL_SHINE  # reflet sur le flanc gauche
+					elif column == right or row == BELL_SHAPE.size() - 2:
+						color = BELL_DARK
+					_pixel(canvas, at, color)
+				"r":
+					_pixel(canvas, at, BELL_DARK)
+				"o":
+					var lag := roundf(sin(_time * BELL_SWING_SPEED - 0.6) * row * 0.6)  # le battant suit
+					_pixel(canvas, top + Vector2(column + lag, row), BELL_DARK)
+	var center := top + Vector2(width / 2.0, BELL_SHAPE.size() * 0.6)
+	for age in _bell_pulses:
+		var progress := age / 0.7
+		var radius := Vector2(6.0 + progress * 12.0, 3.0 + progress * 5.0)
+		var count := 26
+		for i in count:
+			if i % 3 == 2:
+				continue
+			var angle := TAU * i / count
+			var point := center + Vector2(cos(angle) * radius.x, sin(angle) * radius.y)
+			_pixel(canvas, point.round(), Color(BELL_SHINE, (1.0 - progress) * 0.9))
 
 
 ## Stade 2 : étincelles de la couleur de l'aura qui montent autour du corps.

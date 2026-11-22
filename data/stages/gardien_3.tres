@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="HeroStage" format=3]
+
+[ext_resource type="Script" path="res://data/hero_stage.gd" id="1"]
+[ext_resource type="Resource" path="res://data/skills/grand_bourdon.tres" id="2"]
+
+[resource]
+script = ExtResource("1")
+title = "STAGE_GARDIEN_3"
+max_hp = 85
+attack = 16
+defense = 10
+speed = 2
+skill = ExtResource("2")
+required_level = 8
+gold = 1000
+materials = {
+&"eclat_cloche": 8,
+&"larme_lune": 3
+}
+recolor_hue_min = 0.68
+recolor_hue_max = 0.9
+recolor_hue_target = 0.8
+recolor_saturation = 1.25
+recolor_value = 2.4
+metal_tint = Color(0.75, 0.6, 1.0, 1)
+metal_amount = 0.35
+outline_color = Color(2.6, 1.9, 0.8, 1.0)
+aura_color = Color(2.6, 1.9, 0.8, 1)
+aura_level = 2
+aura_element = 4
+sprite_scale = 1.1

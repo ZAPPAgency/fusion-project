@@ -3,8 +3,9 @@ extends Resource
 ## Un stade d'évolution d'un héros (1 = forme de départ, puis 2 et 3 après la forge).
 ## Les bonus sont comptés depuis la forme de départ (pas cumulés d'un stade à l'autre).
 
-## Élément de l'aura du dernier stade : lumière, feu ou foudre (ailes, sol, particules).
-enum AuraElement { NONE, LIGHT, FIRE, LIGHTNING }
+## Élément de l'aura du dernier stade : lumière, feu, foudre (ailes, sol, particules)
+## ou glas (le Gardien : ondes de cloche, sans ailes).
+enum AuraElement { NONE, LIGHT, FIRE, LIGHTNING, BELL }
 
 @export var title := ""  ## Clé de traduction, ex. "STAGE_ALDRIC_2" (« Paladin de cendre »)
 

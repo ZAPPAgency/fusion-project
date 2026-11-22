@@ -18,6 +18,7 @@ var _details: Label  ## Détails de la carte sélectionnée
 var _pages: Array[Callable] = []  ## Construction de la page de chaque onglet : page(entrer: bool)
 var _current_tab := 0
 var _deck_preview: VBoxContainer  ## Page Cartes : deck du héros sélectionné
+var _swap_in: HeroProgress  ## Page Équipe : héros de la réserve qui va entrer (on choisit qui sort)
 
 
 func _ready() -> void:
@@ -106,6 +107,7 @@ func _focus_tabs() -> void:
 func _preview_tab(index: int) -> void:
 	_current_tab = index
 	_back = close
+	_swap_in = null
 	_pages[index].call(false)
 	# Petit fondu de la nouvelle page.
 	_content.modulate.a = 0.0
@@ -124,46 +126,88 @@ func _refresh_gold() -> void:
 
 # --- Équipe ---------------------------------------------------------------------
 
-## Équipe : un portrait animé par héros. Espace : ce héros marche en tête sur la carte.
+## Équipe : un portrait animé par héros recruté. Espace sur un héros de l'équipe : il marche
+## en tête sur la carte. Espace sur un héros en réserve : on choisit ensuite qui lui laisse
+## sa place (seuls GameState.MAX_PARTY héros combattent).
 func _show_team(enter := false, focus_index := 0) -> void:
 	UiTheme.clear(_content)
+	var compact := GameState.heroes.size() > GameState.MAX_PARTY  # 4 lignes : un peu moins hautes
 	var rows: Array[Button] = []
 	for i in GameState.heroes.size():
-		rows.append(_team_row(GameState.heroes[i], i))
+		rows.append(_team_row(GameState.heroes[i], i, 60.0 if compact else 66.0))
 		_content.add_child(rows[i])
-	_content.add_child(UiTheme.label(tr("TEAM_HINT").format({"key": Controls.prompt("switch_leader")}), UiTheme.DIM, 8))
+	var hint := tr("TEAM_HINT").format({"key": Controls.prompt("switch_leader")})
+	if _swap_in:
+		hint = tr("TEAM_SWAP_HINT").format({"hero": tr(_swap_in.data.display_name)})
+	elif compact:
+		hint += "\n" + tr("TEAM_BENCH_HINT").format({"count": GameState.MAX_PARTY})
+	_content.add_child(UiTheme.label(hint, UiTheme.GOLD if _swap_in else UiTheme.DIM, 8))
 	if enter:
-		_back = _focus_tabs
+		_back = _cancel_swap if _swap_in else _focus_tabs
 		rows[focus_index].grab_focus()
 
 
-func _team_row(progress: HeroProgress, index: int) -> Button:
+func _team_row(progress: HeroProgress, index: int, height: float) -> Button:
 	var row := Button.new()
-	row.custom_minimum_size = Vector2(450, 66)
-	row.pressed.connect(_choose_leader.bind(index))
+	row.custom_minimum_size = Vector2(450, height)
+	row.pressed.connect(_on_team_row_pressed.bind(index))
+	var in_party := GameState.in_party(progress)
+	if _swap_in and not in_party:
+		row.modulate = Color(1, 1, 1, 0.4)  # pendant un échange, seuls ceux de l'équipe peuvent sortir
 	UiFeedback.attach(row)
 	var line := HBoxContainer.new()
 	line.position = Vector2(8, 2)
 	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(line)
 	var portrait_box := Control.new()
-	portrait_box.custom_minimum_size = Vector2(64, 62)
+	portrait_box.custom_minimum_size = Vector2(64, height - 4)
 	portrait_box.clip_contents = true  # les ailes ne débordent pas sur le texte
 	line.add_child(portrait_box)
-	var portrait := HeroPortrait.new(progress, HeroPortrait.zoom_to_fit(progress, 50.0))
-	portrait.position = Vector2(32, 58)
+	var portrait := HeroPortrait.new(progress, HeroPortrait.zoom_to_fit(progress, height - 16))
+	portrait.position = Vector2(32, height - 8)
+	if not in_party:
+		portrait.modulate = Color(0.6, 0.6, 0.7)  # en réserve
 	portrait_box.add_child(portrait)
 	# Sélectionné : le héros fait son attaque, comme pour dire « présent ! ».
 	row.focus_entered.connect(func() -> void: portrait.play_once(&"attack1"))
 	var info := _hero_card(progress)
 	if index == GameState.leader_index:
-		info.add_child(UiTheme.label(tr("TEAM_LEADER"), UiTheme.GOLD, 8))
+		info.add_child(UiTheme.label("%s  ·  %s" % [tr("TEAM_IN_PARTY"), tr("TEAM_LEADER")], UiTheme.GOLD, 8))
+	elif in_party:
+		info.add_child(UiTheme.label(tr("TEAM_IN_PARTY"), UiTheme.GOLD, 8))
+	else:
+		info.add_child(UiTheme.label(tr("TEAM_BENCH"), UiTheme.DIM, 8))
 	line.add_child(info)
 	return row
 
 
-func _choose_leader(index: int) -> void:
-	GameState.leader_index = index
+func _on_team_row_pressed(index: int) -> void:
+	var progress := GameState.heroes[index]
+	if _swap_in:
+		if not GameState.in_party(progress):
+			return
+		var incoming := _swap_in
+		_swap_in = null
+		GameState.swap_party(incoming, progress)
+		_team_changed(GameState.heroes.find(incoming))
+	elif GameState.in_party(progress):
+		GameState.leader_index = index
+		_team_changed(index)
+	else:
+		# Héros en réserve : on choisit maintenant qui sort de l'équipe.
+		_swap_in = progress
+		AudioManager.play_cue()
+		_show_team(true, GameState.heroes.find(GameState.progress_of(GameState.party[0])))
+
+
+## Échap pendant un échange : on l'annule et on revient sur le héros de la réserve.
+func _cancel_swap() -> void:
+	var index := GameState.heroes.find(_swap_in)
+	_swap_in = null
+	_show_team(true, index)
+
+
+func _team_changed(index: int) -> void:
 	AudioManager.play_cue()
 	_show_team(true, index)
 	# La page est reconstruite : on fait trembler la nouvelle ligne une fois placée.
@@ -199,8 +243,9 @@ func _show_card_heroes(enter := false, hero_index := 0) -> void:
 	UiTheme.clear(_content)
 	_content.add_child(UiTheme.label(tr("MENU_CHOOSE_HERO"), UiTheme.GOLD))
 	var buttons: Array[Button] = []
+	var row_height := 40.0 if GameState.heroes.size() <= GameState.MAX_PARTY else 30.0
 	for progress in GameState.heroes:
-		var button := _hero_pick_row(progress)
+		var button := _hero_pick_row(progress, row_height)
 		button.pressed.connect(_show_card_slots.bind(progress))
 		button.focus_entered.connect(_preview_deck.bind(progress))
 		_content.add_child(button)
@@ -215,9 +260,9 @@ func _show_card_heroes(enter := false, hero_index := 0) -> void:
 
 
 ## Ligne compacte « portrait + nom » pour choisir un héros (page Cartes).
-func _hero_pick_row(progress: HeroProgress) -> Button:
+func _hero_pick_row(progress: HeroProgress, height: float) -> Button:
 	var row := Button.new()
-	row.custom_minimum_size = Vector2(450, 40)
+	row.custom_minimum_size = Vector2(450, height)
 	UiFeedback.attach(row)
 	var line := HBoxContainer.new()
 	line.position = Vector2(8, 0)
@@ -225,16 +270,16 @@ func _hero_pick_row(progress: HeroProgress) -> Button:
 	line.add_theme_constant_override("separation", 8)
 	row.add_child(line)
 	var portrait_box := Control.new()
-	portrait_box.custom_minimum_size = Vector2(44, 40)
+	portrait_box.custom_minimum_size = Vector2(44, height)
 	portrait_box.clip_contents = true  # les ailes ne débordent pas sur le texte
 	line.add_child(portrait_box)
-	var portrait := HeroPortrait.new(progress, HeroPortrait.zoom_to_fit(progress, 32.0))
-	portrait.position = Vector2(22, 37)
+	var portrait := HeroPortrait.new(progress, HeroPortrait.zoom_to_fit(progress, height - 8.0))
+	portrait.position = Vector2(22, height - 3.0)
 	portrait_box.add_child(portrait)
 	row.focus_entered.connect(func() -> void: portrait.play_once(&"attack1"))
 	var name_label := UiTheme.label("%s   %s %d" % [progress.full_title(), tr("LEVEL_SHORT"), progress.level],
 		progress.data.placeholder_color.lightened(0.3), 10)
-	name_label.custom_minimum_size = Vector2(380, 40)
+	name_label.custom_minimum_size = Vector2(380, height)
 	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	line.add_child(name_label)
 	return row

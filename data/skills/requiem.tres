@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Script" path="res://data/skill_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"requiem"
+display_name = "SKILL_REQUIEM"
+target = 1
+effect = 0
+power = 1.1
+ap_cost = 5
+ap_gain = 0
+unlock_level = 3
+impact_times = PackedFloat32Array(0.6, 1.2)
+hit_animations = Array[StringName]([&"attack1", &"attack2"])
+melee = false
+impact_fx = &"dark"

@@ -1,7 +1,8 @@
 extends Node
-## État de la partie en cours : équipe (niveaux, PV, cartes), or, objets, collection de cartes,
-## carte actuelle, ennemis vaincus, coffres ouverts, combat en cours.
+## État de la partie en cours : héros recrutés (niveaux, PV, cartes), équipe de combat,
+## or, objets, collection de cartes, carte actuelle, ennemis vaincus, coffres ouverts, combat en cours.
 
+## Héros du début de la partie. D'autres rejoignent l'équipe plus tard (CombatantData.joins_as).
 const PARTY_PATHS := [
 	"res://data/characters/aldric.tres",
 	"res://data/characters/ysolde.tres",
@@ -12,7 +13,10 @@ const START_MAP := "res://world/maps/village.tscn"
 const START_SPAWN := "start"
 const START_GOLD := 30
 ## Carte de départ de chaque héros, déjà équipée.
-const STARTER_CARDS := {&"aldric": &"seve_vitale", &"ysolde": &"croc_squelette", &"fenn": &"plume_vent"}
+const STARTER_CARDS := {&"aldric": &"seve_vitale", &"ysolde": &"croc_squelette", &"fenn": &"plume_vent",
+	&"gardien": &"echo_cloche"}
+## Nombre de héros qui combattent ; les autres attendent en réserve (menu Équipe).
+const MAX_PARTY := 3
 
 ## Combat lancé directement depuis la scène de combat (tests, sans carte).
 const TEST_ENCOUNTER_PATHS := [
@@ -33,9 +37,9 @@ const TEST_SPAWN := "forge"
 ## Version du format de sauvegarde (2 = cartes à la place de l'équipement).
 const SAVE_VERSION := 2
 
-var party: Array[CombatantData] = []  ## Fiches de base des héros (dans l'ordre de l'équipe)
-var heroes: Array[HeroProgress] = []  ## Progression de chaque héros (même ordre)
-var leader_index := 0  ## Héros avec lequel on marche sur la carte
+var party: Array[CombatantData] = []  ## Héros qui combattent (MAX_PARTY au plus, dans l'ordre des places)
+var heroes: Array[HeroProgress] = []  ## Progression de tous les héros recrutés (équipe et réserve)
+var leader_index := 0  ## Héros avec lequel on marche sur la carte (indice dans heroes, toujours dans l'équipe)
 var gold := 0
 var inventory := {}  # id d'objet consommable (StringName) -> quantité
 var cards: Array[CardInstance] = []  ## Toutes les cartes du joueur, équipées ou non
@@ -65,20 +69,15 @@ func _ready() -> void:
 func new_game() -> void:
 	party.clear()
 	heroes.clear()
+	cards.clear()
+	next_card_uid = 1
 	for path in PARTY_PATHS:
-		var data: CombatantData = load(path)
-		party.append(data)
-		heroes.append(HeroProgress.new(data))
+		recruit(load(path))
 	gold = START_GOLD
 	leader_index = 0
 	inventory = {&"potion": 3, &"ether": 1}
-	cards.clear()
-	next_card_uid = 1
 	materials = {}
 	test_mode = false
-	for progress in heroes:
-		progress.equip(0, add_card(STARTER_CARDS[progress.data.id]))
-	heal_party()  # les PV max comptent maintenant les cartes de départ
 	current_map = START_MAP
 	spawn_name = START_SPAWN
 	autoplay_step = 0
@@ -91,14 +90,17 @@ func new_game() -> void:
 	_battle_from_map = false
 
 
-## Partie de test (écran titre) : toutes les cartes en plusieurs exemplaires et rangs,
-## beaucoup de matériaux et d'or, héros au niveau maximum, départ à côté de la forge.
+## Partie de test (écran titre) : tous les héros (même ceux à débloquer), toutes les cartes
+## en plusieurs exemplaires et rangs, beaucoup de matériaux et d'or, héros au niveau maximum,
+## départ à côté de la forge.
 ## Elle est sauvegardée à part (voir SaveSystem) : la vraie partie n'est pas touchée.
 func new_test_game() -> void:
 	new_game()
 	test_mode = true
 	gold = TEST_GOLD
 	inventory = {&"potion": 20, &"grande_potion": 10, &"ether": 10}
+	for hero in all_hero_datas():
+		recruit(hero)
 	for card_id in all_card_ids():
 		for rank in TEST_CARD_RANKS:
 			add_card(card_id, rank)
@@ -118,6 +120,18 @@ func all_card_ids() -> Array[StringName]:
 	return ids
 
 
+## Fiches de tous les héros du jeu (fichiers de data/characters).
+func all_hero_datas() -> Array[CombatantData]:
+	var datas: Array[CombatantData] = []
+	for file in ResourceLoader.list_directory("res://data/characters"):
+		datas.append(hero_data(StringName(file.get_basename())))
+	return datas
+
+
+func hero_data(hero_id: StringName) -> CombatantData:
+	return load("res://data/characters/%s.tres" % hero_id)
+
+
 func progress_of(hero: CombatantData) -> HeroProgress:
 	for progress in heroes:
 		if progress.data.id == hero.id:
@@ -130,9 +144,42 @@ func leader() -> HeroProgress:
 	return heroes[leader_index]
 
 
-## Le héros suivant prend la tête (touche R / bouton Y sur la carte).
+## Le héros suivant de l'équipe prend la tête (touche R / bouton Y sur la carte).
 func cycle_leader() -> void:
-	leader_index = (leader_index + 1) % heroes.size()
+	var index := party.find(leader().data)
+	leader_index = heroes.find(progress_of(party[(index + 1) % party.size()]))
+
+
+# --- Équipe et réserve ---
+
+## Un nouveau héros rejoint la partie avec sa carte de départ, PV pleins. Il entre dans
+## l'équipe s'il reste une place, sinon il attend en réserve. Renvoie null s'il était déjà là.
+func recruit(hero: CombatantData) -> HeroProgress:
+	if progress_of(hero):
+		return null
+	var progress := HeroProgress.new(hero)
+	heroes.append(progress)
+	if party.size() < MAX_PARTY:
+		party.append(hero)
+	if STARTER_CARDS.has(hero.id):
+		progress.equip(0, add_card(STARTER_CARDS[hero.id]))
+	progress.hp = progress.max_hp()  # les PV max comptent la carte de départ
+	return progress
+
+
+func in_party(progress: HeroProgress) -> bool:
+	return progress.data in party
+
+
+## Le héros de la réserve `incoming` prend la place de `outgoing` dans l'équipe
+## (et la tête de la marche si c'est `outgoing` qui l'avait).
+func swap_party(incoming: HeroProgress, outgoing: HeroProgress) -> void:
+	var place := party.find(outgoing.data)
+	if place == -1 or in_party(incoming):
+		return
+	party[place] = incoming.data
+	if leader() == outgoing:
+		leader_index = heroes.find(incoming)
 
 
 func heal_party() -> void:
@@ -170,8 +217,9 @@ func battle_started_from_map() -> bool:
 	return _battle_from_map
 
 
-## Victoire : PV gardés (les K.O. se relèvent avec 1 PV), XP et or pour toute l'équipe.
-## Renvoie les lignes du bilan à afficher (gains, niveaux, nouvelles compétences).
+## Victoire : PV gardés (les K.O. se relèvent avec 1 PV), XP et or pour tous les héros
+## (la réserve aussi). Un boss vaincu peut rejoindre l'équipe (CombatantData.joins_as).
+## Renvoie les lignes du bilan à afficher (gains, niveaux, nouvelles compétences, recrue).
 func win_battle(heroes_hp: Dictionary, enemies: Array[CombatantData]) -> Array[String]:
 	for progress in heroes:
 		progress.hp = maxi(heroes_hp.get(progress.data.id, progress.hp), 1)
@@ -189,7 +237,26 @@ func win_battle(heroes_hp: Dictionary, enemies: Array[CombatantData]) -> Array[S
 			report.append(tr("REWARD_LEVEL_UP").format({"hero": tr(progress.data.display_name), "level": new_level}))
 			for skill in progress.skills_learned_at(new_level):
 				report.append(tr("REWARD_NEW_SKILL").format({"hero": tr(progress.data.display_name), "skill": tr(skill.display_name)}))
+	for enemy in enemies:
+		if enemy.joins_as == null:
+			continue
+		var newcomer := recruit(enemy.joins_as)
+		if newcomer:
+			_catch_up(newcomer)
+			report.append(tr("REWARD_RECRUIT").format({"hero": tr(newcomer.data.display_name)}))
+			if not in_party(newcomer):
+				report.append(tr("REWARD_RECRUIT_BENCH"))
 	return report
+
+
+## Une recrue arrive au niveau du héros le plus fort, PV pleins.
+func _catch_up(newcomer: HeroProgress) -> void:
+	var best_level := 1
+	for progress in heroes:
+		best_level = maxi(best_level, progress.level)
+	while newcomer.level < best_level:
+		newcomer.add_xp(HeroProgress.xp_to_next(newcomer.level) - newcomer.xp)
+	newcomer.hp = newcomer.max_hp()
 
 
 ## Retour sur la carte après le combat. Défaite : l'équipe est soignée et repart
@@ -322,6 +389,8 @@ func to_dict() -> Dictionary:
 		"test_mode": test_mode,
 		"leader": leader_index,
 		"heroes": heroes_saved,
+		"roster": heroes.map(func(progress: HeroProgress) -> String: return String(progress.data.id)),
+		"party": party.map(func(hero: CombatantData) -> String: return String(hero.id)),
 		"gold": gold,
 		"inventory": _string_keys(inventory),
 		"cards": cards.map(func(card: CardInstance) -> Dictionary: return card.to_dict()),
@@ -344,6 +413,7 @@ func load_dict(saved: Dictionary) -> void:
 			cards.append(card)
 			cards_by_uid[card.uid] = card
 		next_card_uid = int(saved.get("next_card_uid", cards.size() + 1))
+	_load_team(saved)
 	var heroes_saved: Dictionary = saved.get("heroes", {})
 	for progress in heroes:
 		if heroes_saved.has(String(progress.data.id)):
@@ -355,6 +425,8 @@ func load_dict(saved: Dictionary) -> void:
 	materials = _name_keys(saved.get("materials", {}))
 	test_mode = saved.get("test_mode", false)
 	leader_index = clampi(int(saved.get("leader", 0)), 0, heroes.size() - 1)
+	if not in_party(leader()):
+		leader_index = heroes.find(progress_of(party[0]))
 	current_map = saved.get("map", START_MAP)
 	var position = saved.get("position")
 	player_position = Vector2(position[0], position[1]) if position != null else null
@@ -362,6 +434,29 @@ func load_dict(saved: Dictionary) -> void:
 		defeated_encounters[id] = true
 	for id in saved.get("chests", []):
 		opened_chests[id] = true
+
+
+## Héros recrutés en cours de partie et composition de l'équipe (les anciennes sauvegardes
+## n'en ont pas : on garde les trois héros du début). Les cartes de départ des recrues
+## sont déjà dans les cartes sauvegardées : on ne leur en donne pas une nouvelle.
+func _load_team(saved: Dictionary) -> void:
+	for hero_id in saved.get("roster", []):
+		if ResourceLoader.exists("res://data/characters/%s.tres" % hero_id) and progress_of(hero_data(hero_id)) == null:
+			heroes.append(HeroProgress.new(hero_data(hero_id)))
+	var saved_party: Array[CombatantData] = []
+	for hero_id in saved.get("party", []):
+		var progress := _progress_by_id(StringName(hero_id))
+		if progress and progress.data not in saved_party and saved_party.size() < MAX_PARTY:
+			saved_party.append(progress.data)
+	if not saved_party.is_empty():
+		party = saved_party
+
+
+func _progress_by_id(hero_id: StringName) -> HeroProgress:
+	for progress in heroes:
+		if progress.data.id == hero_id:
+			return progress
+	return null
 
 
 ## Sauvegarde d'avant les cartes (version 1) : chaque équipement devient la carte

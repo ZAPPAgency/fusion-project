@@ -29,6 +29,8 @@ extends Resource
 @export_group("Récompenses (ennemis)")
 @export var xp_reward := 10
 @export var gold_reward := 5
+## Héros qui rejoint l'équipe quand cet ennemi est vaincu (le boss). Vide = personne.
+@export var joins_as: CombatantData
 
 @export_group("Actions")
 @export var basic_attack: SkillData

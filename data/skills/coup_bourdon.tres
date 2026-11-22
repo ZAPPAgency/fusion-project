@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="SkillData" format=3]
+
+[ext_resource type="Script" path="res://data/skill_data.gd" id="1"]
+
+[resource]
+script = ExtResource("1")
+id = &"coup_bourdon"
+display_name = "SKILL_COUP_BOURDON"
+target = 0
+effect = 0
+power = 1.0
+ap_cost = 0
+ap_gain = 1
+unlock_level = 1
+impact_times = PackedFloat32Array(0.6)
+hit_animations = Array[StringName]([&"attack1"])
+melee = true
+impact_fx = &"dark"

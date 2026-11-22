@@ -222,3 +222,19 @@ MOUSE_LEFT,clic gauche,left click
 MOUSE_RIGHT,clic droit,right click
 HUD_MENU,Menu [Tab],Menu [Tab]
 HUD_SWITCH,Héros [R],Hero [R]
+HERO_GARDIEN,Gardien,Warden
+STAGE_GARDIEN_1,Sonneur oublié,Forgotten Bellringer
+STAGE_GARDIEN_2,Sonneur du tocsin,Tocsin Ringer
+STAGE_GARDIEN_3,Voix du Grand Bourdon,Voice of the Great Bell
+SKILL_COUP_BOURDON,Coup de bourdon,Bell Strike
+SKILL_ONDE_GLAS,Onde du glas,Knell Wave
+SKILL_CARILLON,Carillon apaisant,Soothing Chime
+SKILL_REQUIEM,Requiem,Requiem
+SKILL_TOCSIN,Tocsin,Tocsin
+SKILL_GRAND_BOURDON,Grand Bourdon,Great Bell Toll
+REWARD_RECRUIT,{hero} rejoint l'équipe !,{hero} joins the party!
+REWARD_RECRUIT_BENCH,Il attend en réserve : menu Équipe [Tab] pour former ton équipe de 3.,Waiting on the bench: Party menu [Tab] to pick your team of 3.
+TEAM_IN_PARTY,En équipe,In the party
+TEAM_BENCH,En réserve,On the bench
+TEAM_BENCH_HINT,[Espace] sur un héros en réserve : le faire entrer ({count} héros combattent),[Space] on a benched hero: bring them in ({count} heroes fight)
+TEAM_SWAP_HINT,Qui laisse sa place à {hero} ?   [Échap] Annuler,Who makes room for {hero}?   [Esc] Cancel
