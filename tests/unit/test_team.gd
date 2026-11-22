@@ -107,3 +107,19 @@ func test_gardien_has_three_stages_and_no_wings() -> void:
 	var stages := GameState.hero_data(&"gardien").stages
 	assert_eq(stages.size(), 3)
 	assert_eq(stages[2].aura_element, HeroStage.AuraElement.BELL)
+
+
+func test_seen_tutorial_tips_are_saved_and_reset_by_a_new_game() -> void:
+	GameState.seen_tips[&"forge"] = true
+	var saved := GameState.to_dict()
+	GameState.new_game()
+	assert_false(GameState.seen_tips.has(&"forge"), "nouvelle partie : les fiches reviennent")
+	GameState.load_dict(saved)
+	assert_true(GameState.seen_tips.has(&"forge"))
+
+
+func test_every_tutorial_text_is_translated() -> void:
+	for id in Tutorial.TIPS:
+		for page: Dictionary in Tutorial.TIPS[id]:
+			for key in [page.title] + page.lines:
+				assert_ne(TranslationServer.translate(key), key, "texte manquant : %s" % key)

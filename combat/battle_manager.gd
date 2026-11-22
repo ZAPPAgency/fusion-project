@@ -86,6 +86,7 @@ func _run_battle() -> void:
 		var unit := _timeline.next_unit()
 		_hud.show_timeline(unit, _timeline.preview(TIMELINE_PREVIEW))
 		_hud.set_active(unit)
+		await Tutorial.show_tip(&"battle")  # premier combat (frise affichée) : tours, PA, réglages
 		if unit.is_enemy:
 			await _enemy_turn(unit)
 		else:
@@ -194,6 +195,8 @@ func _perform(user: BattleUnit, action: Dictionary, targets: Array[BattleUnit]) 
 
 ## Attaque avec QTE : le héros attaque (bonus de dégâts) ou se défend (parade / esquive).
 func _perform_attack(user: BattleUnit, skill: SkillData, targets: Array[BattleUnit]) -> void:
+	# Première attaque d'un héros / d'un ennemi : explication du timing avant le coup.
+	await Tutorial.show_tip(&"defense" if user.is_enemy else &"attack")
 	var view: UnitView = _views[user]
 	var single_target := targets.size() == 1
 	var runs_to_target := single_target and skill.melee
@@ -339,6 +342,8 @@ func _end_battle(victory: bool) -> void:
 	lines.append("")
 	lines.append(tr("BATTLE_CONTINUE") if from_map else tr("BATTLE_RESTART"))
 	_hud.show_banner(tr("BATTLE_VICTORY") if victory else tr("BATTLE_DEFEAT"), "\n".join(lines))
+	await _wait(0.6)
+	await Tutorial.show_tip(&"victory" if victory else &"defeat")
 	if _autobattle:
 		await _wait(1.5)
 		if from_map:

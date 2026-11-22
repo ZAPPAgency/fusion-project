@@ -145,6 +145,8 @@ func _show_team(enter := false, focus_index := 0) -> void:
 	if enter:
 		_back = _cancel_swap if _swap_in else _focus_tabs
 		rows[focus_index].grab_focus()
+		if compact:
+			Tutorial.show_tip(&"team")  # première fois avec un héros en réserve
 
 
 func _team_row(progress: HeroProgress, index: int, height: float) -> Button:
@@ -257,6 +259,7 @@ func _show_card_heroes(enter := false, hero_index := 0) -> void:
 	if enter:
 		_back = _focus_tabs
 		buttons[hero_index].grab_focus()
+		Tutorial.show_tip(&"cards")
 
 
 ## Ligne compacte « portrait + nom » pour choisir un héros (page Cartes).

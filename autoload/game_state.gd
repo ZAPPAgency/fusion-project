@@ -46,6 +46,7 @@ var cards: Array[CardInstance] = []  ## Toutes les cartes du joueur, équipées 
 var next_card_uid := 1
 var materials := {}  # id de matériau (StringName) -> quantité
 var test_mode := false  ## Partie de test : tout débloqué, sauvegarde à part
+var seen_tips := {}  # id de fiche de tutoriel (StringName) -> true (voir Tutorial)
 
 # --- Exploration ---
 var current_map := ""
@@ -78,6 +79,7 @@ func new_game() -> void:
 	inventory = {&"potion": 3, &"ether": 1}
 	materials = {}
 	test_mode = false
+	seen_tips = {}
 	current_map = START_MAP
 	spawn_name = START_SPAWN
 	autoplay_step = 0
@@ -400,6 +402,7 @@ func to_dict() -> Dictionary:
 		"position": [player_position.x, player_position.y] if player_position != null else null,
 		"defeated": defeated_encounters.keys(),
 		"chests": opened_chests.keys(),
+		"tips": seen_tips.keys().map(func(id: StringName) -> String: return String(id)),
 	}
 
 
@@ -434,6 +437,8 @@ func load_dict(saved: Dictionary) -> void:
 		defeated_encounters[id] = true
 	for id in saved.get("chests", []):
 		opened_chests[id] = true
+	for id in saved.get("tips", []):
+		seen_tips[StringName(id)] = true
 
 
 ## Héros recrutés en cours de partie et composition de l'équipe (les anciennes sauvegardes

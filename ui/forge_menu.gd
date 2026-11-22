@@ -64,6 +64,7 @@ func _ready() -> void:
 	root.add_child(_fx)
 
 	_show_tab(Tab.UPGRADE)
+	Tutorial.show_tip.call_deferred(&"forge")  # première visite : à quoi sert chaque onglet
 
 
 func close() -> void:

@@ -23,6 +23,7 @@ SaveSystem="*res://autoload/save_system.gd"
 AudioManager="*res://autoload/audio_manager.gd"
 SceneRouter="*res://autoload/scene_router.gd"
 Dialogue="*res://ui/dialogue_box.gd"
+Tutorial="*res://autoload/tutorial.gd"
 
 [display]
 

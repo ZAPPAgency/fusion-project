@@ -47,6 +47,11 @@ func _new_test_game() -> void:
 	SceneRouter.transition_to(GameState.START_MAP)
 
 
+## Nouvelle partie : l'introduction (histoire et quête), puis le village.
+## La démo automatique va directement au village.
 func _new_game() -> void:
 	GameState.new_game()
-	SceneRouter.transition_to(GameState.START_MAP)
+	if "--autoplay" in OS.get_cmdline_user_args():
+		SceneRouter.transition_to(GameState.START_MAP)
+	else:
+		SceneRouter.transition_to("res://ui/story_intro.tscn")

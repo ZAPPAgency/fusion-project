@@ -35,6 +35,7 @@ func _show_main() -> void:
 
 func _show_skills() -> void:
 	_in_submenu = true
+	await Tutorial.show_tip(&"skills")
 	_clear()
 	for skill in _hero.skills:
 		var text := "%s  (%d %s)" % [tr(skill.display_name), skill.ap_cost, tr("AP_SHORT")]
@@ -44,6 +45,7 @@ func _show_skills() -> void:
 
 func _show_items() -> void:
 	_in_submenu = true
+	await Tutorial.show_tip(&"items")
 	_clear()
 	for item_id in GameState.inventory:
 		var count: int = GameState.inventory[item_id]

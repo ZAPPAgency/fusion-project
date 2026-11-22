@@ -242,3 +242,81 @@ QUALITY_LOW,bas,low
 QUALITY_MEDIUM,moyens,medium
 QUALITY_HIGH,hauts,high
 QUALITY_LABEL,Effets du décor : {name} [F3],Scenery effects: {name} [F3]
+KEY_ARROWS,flèches,arrows
+ACTION_CONFIRM,Valider / parler,Confirm / talk
+ACTION_MENU,Menu,Menu
+ACTION_SWITCH_LEADER,Changer de héros,Switch hero
+ACTION_PARRY,Parade,Parry
+ACTION_DODGE,Esquive,Dodge
+TUTO_NEXT,[Espace] Suite    [Échap] Fermer,[Space] Next    [Esc] Close
+TUTO_CLOSE,[Espace] Compris !,[Space] Got it!
+INTRO_1,"Depuis des siècles, la grande cloche de Valbrune veille sur la vallée. Chaque soir, son chant repousse la brume de cendre qui couvre la forêt.","For centuries, the great bell of Valbrune has watched over the valley. Each evening, its song drives back the ash mist that covers the forest."
+INTRO_2,"Mais cette nuit, la cloche a sonné faux. Une fissure incandescente l'a traversée de part en part...","But tonight, the bell rang false. A glowing crack split it from top to bottom..."
+INTRO_3,... et des créatures de cendre sont sorties de la forêt de Brumecendre.,... and creatures of ash crawled out of Ashmist Forest.
+INTRO_4,"Aldric, chevalier déchu, est revenu au village. Avec Ysolde, mage de braise, et Fenn, la rôdeuse, il doit découvrir ce qui a brisé la cloche.","Aldric, a fallen knight, has come back to the village. With Ysolde, the ember mage, and Fenn, the ranger, he must find out what broke the bell."
+INTRO_GOAL_TITLE,Ta quête,Your quest
+INTRO_GOAL_1,"Parle à l'Ancienne Odile, au village.",Talk to Elder Odile in the village.
+INTRO_GOAL_2,"Traverse la forêt de Brumecendre, au nord.","Cross Ashmist Forest, to the north."
+INTRO_GOAL_3,Atteins la chapelle en ruine et affronte ce qui s'y cache.,Reach the ruined chapel and face what hides there.
+INTRO_GOAL_4,"En chemin, renforce l'équipe : niveaux, cartes, forge de Gorm et évolutions des héros.","Along the way, strengthen the party: levels, cards, Gorm's forge and hero evolutions."
+INTRO_HINT,[Espace] Suite    [Échap] Passer l'histoire,[Space] Next    [Esc] Skip the story
+INTRO_START,[Espace] Commencer l'aventure,[Space] Begin the adventure
+TUTO_MAP_TITLE,Explorer,Exploring
+TUTO_MAP_1,"Déplace-toi avec {move}, ou clique sur le sol pour y aller.","Move with {move}, or click on the ground to walk there."
+TUTO_MAP_2,"Approche-toi d'un personnage, d'un coffre ou de la forge et appuie sur {confirm} pour interagir.","Walk up to a character, a chest or the forge and press {confirm} to interact."
+TUTO_MAP_3,"{menu} ouvre le menu (équipe, cartes, objets). {switch} change le héros qui marche en tête.","{menu} opens the menu (party, cards, items). {switch} changes the hero walking in front."
+TUTO_MAP_ENEMIES_TITLE,Les créatures,Creatures
+TUTO_MAP_ENEMIES_1,"Les créatures de cendre rôdent sur les cartes et te poursuivent. Si l'une d'elles te touche, le combat commence.","Ash creatures roam the maps and chase you. If one touches you, a battle begins."
+TUTO_MAP_ENEMIES_2,"Elles sont plus lentes que toi : tu peux les éviter. Mais les combats rapportent de l'XP et de l'or.","They are slower than you: you can avoid them. But battles give XP and gold."
+TUTO_BATTLE_TITLE,Le combat,Battle
+TUTO_BATTLE_1,La frise en haut de l'écran montre l'ordre des tours. Les combattants rapides jouent plus souvent.,The bar at the top of the screen shows the turn order. Fast fighters act more often.
+TUTO_BATTLE_2,"À ton tour, choisis Attaque, Compétences ou Objets, puis la cible. Mais attention : ici, le rythme compte !","On your turn, choose Attack, Skills or Items, then the target. But beware: here, timing matters!"
+TUTO_AP_TITLE,Points d'action (PA),Action points (AP)
+TUTO_AP_1,"L'attaque de base rapporte 1 PA. Les compétences, plus puissantes, en coûtent.",A basic attack earns 1 AP. Skills are stronger but cost AP.
+TUTO_AP_2,Tu gagnes aussi des PA en parant les coups ennemis et en réussissant des coups parfaits.,You also earn AP by parrying enemy blows and landing perfect hits.
+TUTO_SETTINGS_TITLE,Réglages rapides,Quick settings
+TUTO_SETTINGS_1,F1 : difficulté (plus facile = fenêtres de timing plus larges).,F1: difficulty (easier = wider timing windows).
+TUTO_SETTINGS_2,"F2 : calibrer le décalage de ton écran ou de ta manette, si tes appuis semblent toujours en retard.","F2: calibrate your screen or controller lag, if your presses always feel late."
+TUTO_SETTINGS_3,F3 : effets du décor (à baisser si le jeu rame). F11 : plein écran.,F3: scenery effects (lower them if the game stutters). F11: fullscreen.
+TUTO_ATTACK_TITLE,Attaquer en rythme,Attack on the beat
+TUTO_ATTACK_1,Appuie sur {confirm} (ou clic gauche) au moment exact où le coup touche l'ennemi.,Press {confirm} (or left click) right when the blow lands on the enemy.
+TUTO_ATTACK_2,Parfait : +50 % de dégâts. Bien : +20 %. Trop tôt ou trop tard : dégâts normaux.,Perfect: +50% damage. Good: +20%. Too early or too late: normal damage.
+TUTO_ATTACK_3,Certaines attaques frappent plusieurs fois : un appui par coup. Tous parfaits : +1 PA en bonus.,Some attacks hit several times: one press per hit. All perfect: +1 bonus AP.
+TUTO_DEFENSE_TITLE,Se défendre,Defending
+TUTO_DEFENSE_1,"Quand un ennemi attaque, appuie au moment où son coup arrive sur ton héros.","When an enemy attacks, press right as the blow reaches your hero."
+TUTO_DEFENSE_2,"Parade ({parry}) : aucun dégât et +1 PA, mais la fenêtre est courte.","Parry ({parry}): no damage and +1 AP, but the window is short."
+TUTO_DEFENSE_3,"Esquive ({dodge}) : aucun dégât, et la fenêtre est deux fois plus large. Raté : tu prends le coup.","Dodge ({dodge}): no damage, and the window is twice as wide. Miss: you take the hit."
+TUTO_COUNTER_TITLE,Riposte,Counter
+TUTO_COUNTER_1,Pare TOUS les coups d'une attaque ennemie et ton héros contre-attaque aussitôt.,Parry EVERY hit of an enemy attack and your hero strikes back at once.
+TUTO_COUNTER_2,Regarde bien les mouvements : chaque ennemi a son propre rythme.,Watch the moves closely: each enemy has its own rhythm.
+TUTO_SKILLS_TITLE,Compétences,Skills
+TUTO_SKILLS_1,"Chaque compétence coûte des PA (entre parenthèses). Certaines touchent tous les ennemis, d'autres soignent l'équipe.","Each skill costs AP (in brackets). Some hit every enemy, others heal the party."
+TUTO_SKILLS_2,"Les héros en apprennent de nouvelles en montant de niveau, en évoluant à la forge et grâce à certaines cartes.","Heroes learn new ones by leveling up, by evolving at the forge and from some cards."
+TUTO_ITEMS_TITLE,Objets,Items
+TUTO_ITEMS_1,"Les potions rendent des PV, l'éther rend des PA.","Potions restore HP, ether restores AP."
+TUTO_ITEMS_2,Utiliser un objet prend le tour du héros. Lise la marchande en vend au village.,Using an item takes the hero's turn. Lise the merchant sells them in the village.
+TUTO_VICTORY_TITLE,Victoire !,Victory!
+TUTO_VICTORY_1,"Tous les héros gagnent de l'XP, même ceux en réserve. Chaque niveau améliore leurs stats et peut apprendre une compétence.","Every hero earns XP, even those on the bench. Each level improves stats and may teach a skill."
+TUTO_VICTORY_2,"Aux niveaux 3, 6 et 9, un héros débloque un emplacement de carte en plus.","At levels 3, 6 and 9, a hero unlocks one more card slot."
+TUTO_DEFEAT_TITLE,Défaite...,Defeat...
+TUTO_DEFEAT_1,Pas de panique : l'équipe est soignée et repart de l'entrée de la carte. La créature t'y attend toujours.,Don't worry: the party is healed and starts again from the map entrance. The creature is still waiting.
+TUTO_DEFEAT_2,"Essaie de parer pour gagner des PA, renforce tes héros à la forge, ou baisse la difficulté avec F1.","Try parrying to earn AP, strengthen your heroes at the forge, or lower the difficulty with F1."
+TUTO_CARDS_TITLE,Les cartes,Cards
+TUTO_CARDS_1,"Les cartes remplacent l'équipement : chacune donne des stats, et parfois une compétence ou un effet (PA en plus, aide au timing...).","Cards replace equipment: each one gives stats, and sometimes a skill or an effect (extra AP, timing help...)."
+TUTO_CARDS_2,"Chaque héros a 2 emplacements au départ, puis un de plus aux niveaux 3, 6 et 9. Certaines cartes sont réservées à un héros.","Each hero starts with 2 slots, then gains one at levels 3, 6 and 9. Some cards are reserved for one hero."
+TUTO_CARDS_3,"On trouve des cartes dans les coffres, chez la marchande et à la forge de Gorm.","Cards are found in chests, at the merchant and at Gorm's forge."
+TUTO_TEAM_TITLE,Équipe de 3,Party of 3
+TUTO_TEAM_1,Seuls 3 héros combattent ; les autres attendent en réserve (ils gagnent quand même de l'XP).,Only 3 heroes fight; the others wait on the bench (they still earn XP).
+TUTO_TEAM_2,"Pour changer : sélectionne un héros en réserve, puis celui qui lui laisse sa place.","To change: select a benched hero, then the one who makes room."
+TUTO_FORGE_TITLE,La forge de Gorm,Gorm's forge
+TUTO_FORGE_1,"Ici, tes cartes et tes héros deviennent plus forts, contre de l'or et des matériaux (fragments de cendre, minerai, éclats de cloche...).","Here, your cards and heroes grow stronger, for gold and materials (ash fragments, ore, bell shards...)."
+TUTO_FORGE_2,Tu en gagneras au fil de l'aventure. Ton stock est affiché dans le menu Collection.,You will collect them along the way. Your stock is shown in the Collection menu.
+TUTO_FORGE_CARDS_TITLE,Les cartes à la forge,Cards at the forge
+TUTO_FORGE_UPGRADE,"Améliorer : fait monter le rang d'une carte (jusqu'à 5) avec des matériaux, ou en fusionnant un doublon.","Upgrade: raises a card's rank (up to 5) with materials, or by merging a duplicate."
+TUTO_FORGE_FUSION,"Fusionner : deux cartes précises en donnent une nouvelle, plus rare.","Fuse: two specific cards make a new, rarer one."
+TUTO_FORGE_EVOLVE,Évoluer : une carte au rang 5 peut se transformer en sa version supérieure.,Evolve: a rank 5 card can turn into its stronger version.
+TUTO_FORGE_CRAFT,Fabriquer : crée une carte à partir de matériaux.,Craft: creates a card from materials.
+TUTO_FORGE_HEROES_TITLE,Évolution des héros,Hero evolution
+TUTO_FORGE_HEROES_1,"Onglet Héros : à partir des niveaux 4 puis 8, un héros peut évoluer contre de l'or et des matériaux.","Heroes tab: from levels 4 and then 8, a hero can evolve for gold and materials."
+TUTO_FORGE_HEROES_2,"Il gagne des stats, une compétence et une nouvelle apparence ; sa forme ultime a une aura unique.","They gain stats, a skill and a new look; their ultimate form has a unique aura."
+ACTION_HIT,Frapper au bon moment,Strike on time

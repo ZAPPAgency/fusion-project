@@ -34,6 +34,7 @@ func _ready() -> void:
 	if GameState.player_position == null:
 		_show_map_name()
 	_add_hud_buttons(player)
+	_show_first_tip()
 
 
 ## Boutons cliquables en haut à droite : menu et changement de héros (pour jouer à la souris).
@@ -113,6 +114,15 @@ func _play_autoplay(player: Player) -> void:
 	while _spawns.has_node("auto_%d" % index):
 		player.auto_path.append(_spawns.get_node("auto_%d" % index).position)
 		index += 1
+
+
+## Première carte : comment se déplacer, parler, ouvrir le menu (une fois le nom du lieu affiché).
+func _show_first_tip() -> void:
+	if GameState.seen_tips.has(&"map"):
+		return
+	await get_tree().create_timer(1.6).timeout
+	if is_inside_tree() and not Dialogue.is_open() and not get_tree().paused:
+		Tutorial.show_tip(&"map")
 
 
 ## Ambiance du lieu, placée juste après le sol : la brume passe sous les personnages.
