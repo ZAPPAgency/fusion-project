@@ -6,7 +6,8 @@ extends Node2D
 ## - forme ultime (aura_level 2) : aura en pixel art liée à l'élément du héros, comme les auras
 ##   des jeux en ligne : ailes, motif au sol, particules et auréole.
 ##     lumière (Aldric) : ailes d'ange, cercle de runes, rayons qui montent, auréole dorée ;
-##     feu (Ysolde) : ailes de phénix, anneau de flammes, braises, couronne de flammes ;
+##     feu (Ysolde) : spirale de flammes qui monte en s'enroulant autour d'elle (en boucle),
+##       petit anneau de flammes au sol, braises ;
 ##     foudre (Fenn) : ailes d'énergie, éclairs qui crépitent, anneau électrique.
 ## Ce nœud se place derrière le sprite ; `front` (devant le sprite) dessine ce qui passe
 ## devant le corps. Utiliser HeroLook.attach(). L'origine est aux pieds du héros.
@@ -15,6 +16,10 @@ extends Node2D
 const LIGHT_GOLD := Color(1.0, 0.86, 0.45)
 const LIGHT_WHITE := Color(1.25, 1.2, 1.0)  # > 1 : brille un peu avec le glow
 const FIRE_RAMP := [Color(1.5, 1.35, 0.8), Color(1.25, 0.72, 0.2), Color(0.95, 0.34, 0.08), Color(0.55, 0.1, 0.03, 0.75)]
+## Spirale de feu : durée d'une montée (s), nombre de tours, part de la hauteur occupée par la traînée.
+const SPIRAL_PERIOD := 1.9
+const SPIRAL_TURNS := 2.2
+const SPIRAL_TRAIL := 0.45
 const BOLT_CORE := Color(1.4, 1.6, 1.9)
 const BOLT_GLOW := Color(0.35, 0.75, 1.0, 0.45)
 const BOLT_DIM := Color(0.15, 0.4, 0.9, 0.45)
@@ -102,7 +107,7 @@ func _ready() -> void:
 	add_child(_glow)
 	if stage.aura_level == 1:
 		add_child(_make_sparks())
-	else:
+	elif stage.aura_element != HeroStage.AuraElement.FIRE:  # le feu a sa spirale à la place des ailes
 		_make_wings()
 
 
@@ -170,8 +175,11 @@ func _spawn_particles() -> void:
 				_beams.append({"x": roundf(_rng.randf_range(-half_width, half_width)), "age": 0.0,
 					"life": _rng.randf_range(0.8, 1.3), "height": _rng.randf_range(body_size.y * 0.6, body_size.y * 1.1)})
 		HeroStage.AuraElement.FIRE:
-			var angle := _rng.randf() * TAU
-			_add_mote(_ground_point(angle, 1.0), Vector2(_rng.randf_range(-5, 5), -_rng.randf_range(14, 26)), 1.2, FIRE_RAMP[_rng.randi_range(0, 1)])
+			# Quelques braises s'échappent de la tête des spirales.
+			if _rng.randf() < 0.5:
+				var strand := _rng.randi_range(0, 1)
+				var head := _spiral_point(strand, _spiral_progress(strand) * _spiral_height())
+				_add_mote(head, Vector2(_rng.randf_range(-6, 6), -_rng.randf_range(10, 20)), 0.8, FIRE_RAMP[_rng.randi_range(0, 1)])
 		HeroStage.AuraElement.LIGHTNING:
 			if _rng.randf() < 0.5:
 				_add_mote(Vector2(_rng.randf_range(-half_width, half_width), -_rng.randf_range(0, body_size.y)),
@@ -218,6 +226,7 @@ func _draw() -> void:
 			_draw_beams(self)
 		HeroStage.AuraElement.FIRE:
 			_draw_flame_ring(self, true)
+			_draw_fire_spiral(self, true)
 		HeroStage.AuraElement.LIGHTNING:
 			_draw_electric_ring(self, true)
 
@@ -233,8 +242,8 @@ func draw_front(canvas: CanvasItem) -> void:
 			_draw_halo(canvas)
 		HeroStage.AuraElement.FIRE:
 			_draw_flame_ring(canvas, false)
+			_draw_fire_spiral(canvas, false)
 			_draw_motes(canvas)
-			_draw_flame_crown(canvas)
 		HeroStage.AuraElement.LIGHTNING:
 			_draw_electric_ring(canvas, false)
 			_draw_bolts(canvas)
@@ -298,7 +307,7 @@ func _draw_flame_ring(canvas: CanvasItem, back: bool) -> void:
 			continue
 		var base := _ground_point(angle, 1.0).floor()
 		var flicker := (_noise.get_noise_2d(i * 9.0, _time * 60.0) + 1.0) * 0.5
-		var height := int(2.0 + flicker * (9.0 if back else 6.0))
+		var height := int(1.0 + flicker * (5.0 if back else 3.0))  # discret : la spirale est l'effet principal
 		for y in height:
 			var ramp_index := mini(int(float(y) / height * FIRE_RAMP.size()), FIRE_RAMP.size() - 1)
 			_pixel(canvas, base + Vector2(0, -y), FIRE_RAMP[ramp_index])
@@ -358,15 +367,55 @@ func _draw_halo(canvas: CanvasItem) -> void:
 		_pixel(canvas, point, LIGHT_WHITE if i == sparkle else LIGHT_GOLD)
 
 
-## Feu : couronne de petites flammes qui dansent au-dessus de la tête.
-func _draw_flame_crown(canvas: CanvasItem) -> void:
-	var center := _head_center()
-	for i in 7:
-		var angle := TAU * i / 7 + _time * 0.8
-		var base := center + Vector2(round(cos(angle) * 7.0), round(sin(angle) * 2.0))
-		var height := 2 + int((_noise.get_noise_2d(i * 13.0, _time * 70.0) + 1.0) * 2.0)
-		for y in height:
-			_pixel(canvas, base + Vector2(0, -y), FIRE_RAMP[mini(y, FIRE_RAMP.size() - 1)])
+## Feu : deux traînées de flammes montent en s'enroulant autour du corps, puis repartent
+## d'en bas (décalées d'une demi-montée pour que l'effet ne s'arrête jamais).
+## Chaque point de la traînée est devant le corps quand il est sur la moitié avant du cercle.
+func _draw_fire_spiral(canvas: CanvasItem, back: bool) -> void:
+	var height := _spiral_height()
+	for strand in 2:
+		var progress := _spiral_progress(strand)
+		# Apparition en bas et extinction en haut : la boucle repart en douceur.
+		var fade := minf(1.0, progress * 6.0) * minf(1.0, (1.0 - progress) * 5.0)
+		var head := progress * height
+		var samples := int(height * SPIRAL_TRAIL * 8.0)  # serré : la traînée reste continue
+		for i in samples:
+			var behind := float(i) / samples  # 0 = tête de la flamme, 1 = bout de la traînée
+			var y := head - behind * height * SPIRAL_TRAIL
+			if y < 0.0:
+				break
+			var angle := _spiral_angle(strand, y)
+			if (sin(angle) < 0.0) != back:
+				continue
+			var ramp_index := mini(int(behind * FIRE_RAMP.size() * 1.2), FIRE_RAMP.size() - 1)
+			var color: Color = FIRE_RAMP[ramp_index]
+			color.a *= (1.0 - behind) * fade * 0.85
+			var point := _spiral_point(strand, y)
+			_pixel(canvas, point, color, 2.0 if behind < 0.5 else 1.0)
+			# Petites langues de flamme qui s'échappent vers le haut, animées par du bruit.
+			if i % 6 == 0 and behind < 0.7:
+				var lick := int((_noise.get_noise_2d(i * 7.0 + strand * 50.0, _time * 80.0) + 1.0) * 2.0)
+				for up in lick:
+					_pixel(canvas, point + Vector2(0, -2 - up), Color(FIRE_RAMP[mini(ramp_index + 1 + up, FIRE_RAMP.size() - 1)], color.a * 0.7))
+
+
+func _spiral_height() -> float:
+	return roundf(body_size.y * 1.15)
+
+
+## Avancement de la montée (0 en bas, 1 en haut) de la traînée `strand`.
+func _spiral_progress(strand: int) -> float:
+	return fmod(_time / SPIRAL_PERIOD + strand * 0.5, 1.0)
+
+
+func _spiral_angle(strand: int, y: float) -> float:
+	return strand * PI + y / _spiral_height() * TAU * SPIRAL_TURNS
+
+
+## Point de la spirale à la hauteur `y` : le cercle se resserre un peu en montant.
+func _spiral_point(strand: int, y: float) -> Vector2:
+	var angle := _spiral_angle(strand, y)
+	var radius := (body_size.x * 0.7 + 3.0) * lerpf(1.0, 0.7, y / _spiral_height())
+	return Vector2(cos(angle) * radius, -y + sin(angle) * radius * 0.3)
 
 
 ## Foudre : anneau électrique qui tressaute au-dessus de la tête.
