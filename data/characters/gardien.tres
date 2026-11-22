@@ -19,6 +19,7 @@ display_name = "HERO_GARDIEN"
 placeholder_color = Color(0.62, 0.45, 0.85, 1)
 sprite_frames = ExtResource("4")
 sprite_scale = 0.75
+map_scale = 0.72
 max_hp = 125
 attack = 16
 defense = 11

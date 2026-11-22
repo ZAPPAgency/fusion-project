@@ -60,7 +60,7 @@ func refresh_look() -> void:
 	_sprite.play(&"idle")
 	var stage := leader.stage_data() if leader.stage > 0 else null
 	_sprite.material = HeroLook.make_material(stage)
-	var size := leader.data.sprite_scale * (stage.sprite_scale if stage else 1.0)
+	var size := leader.data.sprite_scale * leader.data.map_scale * (stage.sprite_scale if stage else 1.0)
 	_sprite.scale = Vector2(facing, 1.0) * size
 	if _look:
 		_look.queue_free()

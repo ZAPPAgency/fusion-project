@@ -10,6 +10,9 @@ extends Resource
 @export_group("Sprite")
 @export var sprite_frames: SpriteFrames  ## Généré par tools/build_sprite_frames.gd ; vide = rectangle
 @export var sprite_scale := 1.0
+## Taille en plus sur la carte d'exploration, quand le héros marche en tête (1 = comme en combat).
+## Pour les grands sprites (le Gardien et son bâton), qui écraseraient le décor.
+@export var map_scale := 1.0
 
 @export_group("Stats")
 @export var max_hp := 100
